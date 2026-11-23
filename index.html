@@ -156,14 +156,14 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div>
 <div class="err" id="err"></div>
 <details class="box look" id="libbox"><summary>Brani da link · <span id="libn">0 brani</span></summary><div class="libin">
- <textarea id="links" rows="3" placeholder="Incolla uno o più link, uno per riga: file .mscz .mxl .musicxml, cartelle o repository GitHub, oppure un file .txt con l'elenco dei brani"></textarea>
+ <textarea id="links" rows="3" placeholder="Incolla uno o più link, uno per riga: file .mscz .mxl .musicxml, cartelle Mega o GitHub, oppure un file .txt con l'elenco dei brani"></textarea>
  <div class="pre"><button id="ladd">Aggiungi</button><button id="lclr">Svuota elenco</button></div>
  <label class="fixl">Il mio link fisso (si carica da solo ogni volta)<input type="url" id="lfix" placeholder="es. https://github.com/Rhk93/Spartiti"></label>
  <div class="pre"><button id="lfs">Salva link fisso</button><button id="lfu">Aggiorna</button><button id="lfd">Togli</button></div>
  <div class="note" id="lmsg"></div>
  <input type="search" id="lq" placeholder="Cerca un brano" aria-label="Cerca un brano">
  <div id="lib"></div>
- <p class="note">Nel file .txt scrivi un brano per riga: <code>Nome del brano | link</code>. Google Drive e Mega non permettono la lettura: usa GitHub.</p>
+ <p class="note">Nel file .txt scrivi un brano per riga: <code>Nome del brano | link</code>. Funzionano anche i link di Mega (file e cartelle, con la chiave dopo il #). Google Drive non permette la lettura.</p>
 </div></details>
 <div class="tools">
  <label id="lblw">Scritte sotto<select id="lbl"><option value="none">Nessuna</option><option value="note">Nomi delle note</option><option value="mix">Accordi e note</option><option value="chord">Solo accordi</option></select></label>
@@ -703,14 +703,50 @@ function frame(){requestAnimationFrame(frame);if(!score)return;const t0=now();
 
 /* ---------- raccolta da link ---------- */
 const SC=/\.(mscz|mscx|mxl|musicxml|xml)$/i;
+/* ---------- Mega ---------- */
+const AES=(()=>{const S=new Uint8Array(256),Si=new Uint8Array(256),r8=(x,s)=>((x<<s)|(x>>(8-s)))&255;let p=1,q=1;
+ do{p=(p^(p<<1)^(p&128?0x1b:0))&255;q^=q<<1;q^=q<<2;q^=q<<4;q&=255;if(q&128)q^=9;S[p]=(q^r8(q,1)^r8(q,2)^r8(q,3)^r8(q,4)^0x63)&255}while(p!==1);
+ S[0]=0x63;for(let i=0;i<256;i++)Si[S[i]]=i;
+ const xt=a=>((a<<1)^(a&128?0x1b:0))&255,mul=(a,b)=>{let r=0;while(b){if(b&1)r^=a;a=xt(a);b>>=1}return r};
+ const exp=k=>{const w=new Uint8Array(176);w.set(k);let rc=1;for(let i=16;i<176;i+=4){let t=w.slice(i-4,i);if(i%16===0){t=[S[t[1]]^rc,S[t[2]],S[t[3]],S[t[0]]];rc=xt(rc)}for(let j=0;j<4;j++)w[i+j]=w[i-16+j]^t[j]}return w};
+ const dec=(w,b)=>{let s=b.map((x,i)=>x^w[160+i]);
+  for(let r=9;r>=0;r--){const n=new Uint8Array(16);for(let c=0;c<4;c++)for(let y=0;y<4;y++)n[y+4*((c+y)%4)]=Si[s[y+4*c]];
+   for(let i=0;i<16;i++)n[i]^=w[r*16+i];
+   if(r){for(let c=0;c<4;c++){const a=n.slice(4*c,4*c+4);for(let y=0;y<4;y++)n[4*c+y]=mul(a[y],14)^mul(a[(y+1)%4],11)^mul(a[(y+2)%4],13)^mul(a[(y+3)%4],9)}}
+   s=n}return s};
+ return{exp,dec}})();
+const b64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/').replace(/,/g,'');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+const u64=b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const ecbDec=(key,d)=>{const w=AES.exp(key),o=new Uint8Array(d.length);for(let i=0;i<d.length;i+=16)o.set(AES.dec(w,d.slice(i,i+16)),i);return o};
+const mkey=k=>{if(k.length<32)return{a:k,iv:new Uint8Array(16)};const a=new Uint8Array(16);for(let i=0;i<16;i++)a[i]=k[i]^k[i+16];const iv=new Uint8Array(16);iv.set(k.slice(16,24));return{a,iv}};
+function mattr(at,a){try{const d=b64u(at),w=AES.exp(a),o=new Uint8Array(d.length);let pr=new Uint8Array(16);
+ for(let i=0;i<d.length;i+=16){const c=d.slice(i,i+16),x=AES.dec(w,c);for(let j=0;j<16;j++)o[i+j]=x[j]^pr[j];pr=c}
+ const t=new TextDecoder().decode(o).replace(/\0+$/,'');return t.startsWith('MEGA')?JSON.parse(t.slice(4)):{}}catch(e){return{}}}
+async function mapi(req,n){const r=await fetch('https://g.api.mega.co.nz/cs?id='+Date.now()+(n?'&n='+n:''),{method:'POST',body:JSON.stringify([req])});
+ const j=await r.json(),v=Array.isArray(j)?j[0]:j;if(typeof v==='number'||typeof j==='number')throw new Error('Mega risponde con errore '+(typeof v==='number'?v:j)+' (link sbagliato o file rimosso)');return v}
+function megaLink(u){const m=u.match(/mega\.(?:nz|co\.nz)\/(?:(file|folder)\/([\w-]+)#([\w,-]+)|#(F?)!([\w-]+)!([\w,-]+))/i);if(!m)return null;
+ return m[1]?{t:m[1],h:m[2],k:m[3]}:{t:m[4]?'folder':'file',h:m[5],k:m[6]}}
+async function megaExpand(L){
+ if(L.t==='file'){const k=mkey(b64u(L.k)),v=await mapi({a:'g',p:L.h,ssl:1});const nm=mattr(v.at,k.a).n||'Brano Mega';return SC.test(nm)?[{n:nm.replace(SC,''),u:'mega:f:'+L.h+':'+L.k}]:[]}
+ const fk=b64u(L.k),v=await mapi({a:'f',c:1,ca:1,r:1},L.h),out=[];
+ for(const nd of v.f||[]){if(nd.t!==0||!nd.k)continue;const ek=nd.k.split('/')[0].split(':').pop();let k;try{k=ecbDec(fk,b64u(ek))}catch(e){continue}
+  const kk=mkey(k),nm=mattr(nd.a,kk.a).n||'';if(SC.test(nm))out.push({n:nm.replace(SC,''),u:'mega:d:'+L.h+':'+nd.h+':'+u64(k)})}
+ return out.sort((a,b)=>a.n.localeCompare(b.n,'it'))}
+async function megaGet(u){const p=u.split(':');let v,k;
+ if(p[1]==='f'){k=mkey(b64u(p[3]));v=await mapi({a:'g',g:1,p:p[2],ssl:1})}else{k=mkey(b64u(p[4]));v=await mapi({a:'g',g:1,n:p[3],ssl:1},p[2])}
+ if(!v.g)throw new Error('Mega non dà il file (forse limite di download raggiunto)');
+ const enc=await (await fetch(v.g)).arrayBuffer(),ck=await crypto.subtle.importKey('raw',k.a,'AES-CTR',false,['decrypt']);
+ return new Uint8Array(await crypto.subtle.decrypt({name:'AES-CTR',counter:k.iv,length:64},ck,enc))}
+
 let lib=[],cur=-1;try{lib=JSON.parse(localStorage.getItem('ss_lib')||'[]')}catch(e){}
 const saveLib=()=>{try{localStorage.setItem('ss_lib',JSON.stringify(lib))}catch(e){}};
 const nameOf=u=>{let n=u.split('?')[0].split('/').pop()||u;try{n=decodeURIComponent(n)}catch(e){}return n.replace(SC,'').replace(/[_]+/g,' ')};
-const srcOf=u=>{const m=u.match(/raw\.githubusercontent\.com\/([^/]+\/[^/]+)/);try{return m?m[1]:new URL(u).host}catch(e){return''}};
+const srcOf=u=>{if(u.startsWith('mega:'))return'Mega';const m=u.match(/raw\.githubusercontent\.com\/([^/]+\/[^/]+)/);try{return m?m[1]:new URL(u).host}catch(e){return''}};
 const enc=p=>p.split('/').map(encodeURIComponent).join('/');
 async function jget(u){const r=await fetch(u);return r.json()}
 async function expand(u,dep=0){
  u=u.trim();if(!/^https?:\/\//i.test(u)||dep>2)return[];
+ const mg=megaLink(u);if(mg)return megaExpand(mg);
  const m=u.match(/^https?:\/\/github\.com\/([^/]+)\/([^/#?]+)(?:\/(tree|blob)\/([^/]+)\/?([^#?]*))?/i);
  if(m){let[,o,r,kind,br,path]=m;r=r.replace(/\.git$/,'');path=decodeURIComponent(path||'').replace(/\/$/,'');
   if(kind==='blob')return[{n:nameOf(path),u:`https://raw.githubusercontent.com/${o}/${r}/${br}/${enc(path)}`}];
@@ -751,7 +787,7 @@ $('lib').addEventListener('click',async e=>{
  const x=e.target.closest('[data-x]');if(x){lib.splice(+x.dataset.x,1);cur=-1;saveLib();renderLib();return}
  const b=e.target.closest('[data-l]');if(!b)return;const it=lib[+b.dataset.l];
  $('lmsg').textContent='Apro «'+it.n+'»…';
- try{const r=await fetch(it.u);if(!r.ok)throw new Error('errore '+r.status);const dd=await openBytes(new Uint8Array(await r.arrayBuffer()),it.n+'.x');if(!dd.title||dd.title==='x')dd.title=it.n;dd.auto=true;load(dd);cur=+b.dataset.l;renderLib();$('lmsg').textContent='';$('stage').scrollIntoView({behavior:'smooth'})}
+ try{let by;if(it.u.startsWith('mega:'))by=await megaGet(it.u);else{const r=await fetch(it.u);if(!r.ok)throw new Error('errore '+r.status);by=new Uint8Array(await r.arrayBuffer())}const dd=await openBytes(by,it.n+'.x');if(!dd.title||dd.title==='x')dd.title=it.n;dd.auto=true;load(dd);cur=+b.dataset.l;renderLib();$('lmsg').textContent='';$('stage').scrollIntoView({behavior:'smooth'})}
  catch(err){$('lmsg').textContent='Non riesco ad aprire «'+it.n+'»: '+(err instanceof TypeError?'il sito non permette di leggerlo':err.message)}
 });
 const LINK_FISSO='';
