@@ -34,12 +34,17 @@ jobs:
         run: |
           rm -f package.json
           npm init -y > /dev/null
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/assets@3
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
           npx cap add android
-          mkdir -p assets
-          cp icon.png assets/icon-only.png
-          cp icon.png assets/icon-foreground.png
-          npx @capacitor/assets generate --android --iconBackgroundColor '#7c3aed' --splashBackgroundColor '#05051a' || true
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-anydpi-v26
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            n=${d#*:}; f=$RES/mipmap-${d%%:*}
+            mkdir -p $f
+            rm -f $f/ic_launcher*.png
+            cp icone-android/icona-$n.png $f/ic_launcher.png
+            cp icone-android/tonda-$n.png $f/ic_launcher_round.png
+          done
           npx cap sync android
       - name: Compila e firma APK
         working-directory: app/android
