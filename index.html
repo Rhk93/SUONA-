@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SUONA!</title>
-<meta name="theme-color" content="#05051a">
+<meta name="theme-color" content="#fff7d6">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -690,8 +690,9 @@ document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement
 addEventListener('keydown',e=>{if(e.key==='Escape')exitFs()});
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(Math.abs($('sheet').clientWidth-8-lastW)>20)renderSheet()},250)});
 /* ---------- scritte e stili ---------- */
-let lblMode='none',sty='neon',th='neon';
-try{lblMode=localStorage.getItem('ss_lbl')||'none';sty=localStorage.getItem('ss_sty')||'neon';th=localStorage.getItem('ss_th')||'neon'}catch(e){}
+let lblMode='none',sty='moderno',th='sole';
+try{if(localStorage.getItem('ss_v')!=='2'){localStorage.setItem('ss_sty','moderno');localStorage.setItem('ss_th','sole');localStorage.setItem('ss_v','2')}
+ lblMode=localStorage.getItem('ss_lbl')||'none';sty=localStorage.getItem('ss_sty')||'moderno';th=localStorage.getItem('ss_th')||'sole'}catch(e){}
 const IT={c:'Do',d:'Re',e:'Mi',f:'Fa',g:'Sol',a:'La',b:'Si'},PAST={c:'#ff9aa2',d:'#ffb877',e:'#f5d76e',f:'#8fd9a8',g:'#8fd3f4',a:'#9fb4ff',b:'#c9a7f5'},RB0={c:'#e63946',d:'#f77f00',e:'#e9b000',f:'#2a9d8f',g:'#2bb3e0',a:'#3a5ad9',b:'#9b5de5'};
 const RB=new Proxy({},{get:(o,k)=>(sty==='pastello'?PAST:RB0)[k]});
 const COLSTY=['arcobaleno','cartoon','pastello'];
