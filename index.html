@@ -39,7 +39,13 @@ a.btn{text-decoration:none}
 .tools label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600;flex:1;min-width:140px}
 .zs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end}
 .prop{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.prop label{display:flex;flex-direction:column;font-size:.85rem;font-weight:600;flex:1;min-width:120px}
+#stage{position:relative}
+.fscorner{position:absolute;top:12px;right:12px;z-index:3;width:44px;min-width:44px;height:44px;padding:0;border-radius:12px;opacity:.55;background:var(--card);color:var(--ink);box-shadow:0 2px 8px #0002}
+.fscorner:hover,.fscorner:focus-visible{opacity:1}
+#stage.fs .fscorner{display:none}
 .bar,.fzoom{display:none}
+#stage.fs .fzoom,#stage.fs .recbar{opacity:.18;transition:opacity .35s}
+#stage.fs .fzoom.show,#stage.fs .recbar.show{opacity:1}
 #stage.fs .fzoom{display:flex;gap:8px;position:absolute;right:22px;top:max(18px,calc(env(safe-area-inset-top) + 10px));z-index:2}
 #stage.fs .fzoom button{width:52px;height:52px;font-size:1.6rem;background:var(--acc);color:#fff;box-shadow:0 4px 0 #0003;opacity:.92}
 #stage.fs{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;gap:8px;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))}
@@ -55,10 +61,13 @@ a.btn{text-decoration:none}
 .bar.min #prop,.bar.min #spd{display:none}
 .sheet{position:relative;height:clamp(320px,64vh,720px);overflow:auto;border-radius:24px;background:var(--paper);box-shadow:0 6px 0 var(--line);border:3px solid var(--sun)}
 .sheet .in{position:relative;margin:0 auto}
+.stitle{position:absolute;left:8%;right:8%;top:14px;text-align:center;font-weight:700;line-height:1.15;color:var(--note);outline:none;border-radius:12px;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text}
+.stitle:focus{background:color-mix(in srgb,var(--sun) 25%,transparent);white-space:normal}
+.stitle:empty{display:none}
 .sheet svg{display:block}
 .cur{position:absolute;width:6px;margin-left:-3px;border-radius:6px;background:color-mix(in srgb,var(--acc) 55%,transparent);box-shadow:0 0 14px var(--acc);pointer-events:none;display:none}
 .mbox{position:absolute;border-radius:14px;background:color-mix(in srgb,var(--sun) 25%,transparent);pointer-events:none;display:none}
-.ball{position:absolute;width:22px;height:22px;margin:-30px 0 0 -8px;border-radius:50%;background:var(--sun);box-shadow:inset -4px -4px 0 #0002}
+.ball{position:absolute;width:22px;height:22px;margin:6px 0 0 -8px;border-radius:50%;background:var(--sun);box-shadow:inset -4px -4px 0 #0002}
 .ball::before,.ball::after{content:"";position:absolute;top:7px;width:4px;height:4px;border-radius:50%;background:#1d2340}
 .ball::before{left:6px}.ball::after{right:6px}
 .msg{padding:24px;text-align:center}
@@ -214,8 +223,8 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <label>Battute per riga<select id="bpr"><option value="0">Automatico</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></label>
  <label id="phl">Altezza riquadro<input type="range" id="ph" min="30" max="95"></label>
 </div></details>
-<div id="stage"><div class="sheet" id="sheet"><div class="in" id="sin"><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
-<div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button></div>
+<div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
+<div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button><button id="fzx" aria-label="Esci dallo schermo intero" title="Esci dallo schermo intero"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"/></svg></button></div>
 <div class="bar" id="bar"><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
 <div class="ctrl" id="ctrl">
  <button class="play" id="play" aria-label="Suona">▶</button>
@@ -423,7 +432,7 @@ function load(d){
  parts=d.parts.length?d.parts:[{name:'Parte 1',inst:'piano'}];
  const gi=parts.map((p,i)=>i).filter(i=>['chitarra','chitelet'].includes(parts[i].inst)||/guit|chitar/i.test(parts[i].name)).slice(0,2);if(!gi.length)gi.push(0);
  parts.forEach((p,i)=>{p.vol=.8;p.mute=false;p.show=!d.auto||gi.includes(i);p.col=COLORS[i%COLORS.length];p.g=null});
- $('title').textContent=d.title;$('err').textContent='';
+ let CT={};try{CT=JSON.parse(localStorage.getItem('ss_tit')||'{}')}catch(e){}score.otitle=d.title;score.title=CT[d.title]||d.title;$('title').textContent=score.title;$('stitle').textContent=score.title;$('err').textContent='';
  renderParts();upd();renderSheet();
  if(d.auto&&gi.length===2)askGuitar(gi);
 }
@@ -552,13 +561,13 @@ const RK={treble:'b/4',bass:'d/3',alto:'c/4',tenor:'a/3',percussion:'b/4'};
 const KN=['Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#','C#'];
 const lb=(a,t)=>{let x=0,y=a.length;while(x<y){const m=(x+y)>>1;if(a[m].s<t)x=m+1;else y=m}return x};
 function renderSheet(){
- const host=$('svg');tl=[];boxes=[];act.clear();lastRow=-1;$('cur').style.display=$('mbox').style.display='none';
+ const host=$('svg');$('stitle').hidden=true;tl=[];boxes=[];act.clear();lastRow=-1;$('cur').style.display=$('mbox').style.display='none';
  if(!score)return;
  if(!window.Vex||!Vex.Flow){host.innerHTML='<div class="msg">Per disegnare lo spartito serve la connessione a internet. La musica funziona lo stesso.</div>';return}
  const VS=score.staves.filter(st=>(parts[st.pi]||{}).show!==false);
  if(!VS.length){host.innerHTML='<div class="msg">Tutti gli strumenti sono nascosti: in basso, in «Strumenti», tocca «Vedi» su quelli che ti interessano.</div>';return}
  const W=$('sheet').clientWidth-8;if(W<100)return;lastW=W;host.innerHTML='';
- const VF=Vex.Flow,LW=W/sz,S=VS.length,SH=rgF*(lblMode==='none'?100:lblMode==='note'?150:130),top=40,nM=VS[0].ms.length;
+ const VF=Vex.Flow,LW=W/sz,S=VS.length,SH=rgF*(lblMode==='none'?100:lblMode==='note'?150:130),top=104,nM=VS[0].ms.length;
  const ws=[];for(let mi=0;mi<nM;mi++){let c=0;VS.forEach(st=>{const M=st.ms[mi];if(M)M.voices.forEach(v=>c=Math.max(c,v.length))});ws.push(Math.max(110,60+30*c)*spF)}
  const modW=mi=>45+Math.abs(VS[0].ms[mi].key)*10+(mi===0?30:0);
  const rows=[];let row=[],used=0;
@@ -567,6 +576,7 @@ function renderSheet(){
  if(!bpr&&row.length)rows.push(row);
  const yo=[];let yy=0;VS.forEach((st,si)=>{if(si&&st.pi!==VS[si-1].pi)yy+=34;yo.push(yy);yy+=SH});const X0=S>1?22:10,PN=[];
  const rowH=yy+30,H=top+rows.length*rowH+20;
+ $('stitle').hidden=false;$('stitle').style.fontSize=Math.round(30*sz)+'px';$('stitle').style.top=Math.round(18*sz)+'px';
  const r=new VF.Renderer(host,VF.Renderer.Backends.SVG);r.resize(W,H*sz);const ctx=r.getContext();ctx.scale(sz,sz);
  $('sin').style.width=W+'px';
  const pend={},groups=[];
@@ -651,7 +661,7 @@ function updSheet(t){
  c.style.left=x*sz+'px';c.style.top=B.y*sz+'px';c.style.height=B.h*sz+'px';
  m.style.left=B.x*sz+'px';m.style.top=B.y*sz+'px';m.style.width=B.w*sz+'px';m.style.height=B.h*sz+'px';
  let s0=score.tp[0];for(const q of score.tp)if(q.t<=t)s0=q;const ph=(s0.b+(t-s0.t)*s0.q)%1;
- $('ball').style.transform=`translateY(${playing?-Math.abs(Math.sin(ph*Math.PI))*16:0}px)`;RS={B,x,ph};
+ $('ball').style.transform=`translateY(${playing?-Math.abs(Math.sin(ph*Math.PI))*12:0}px)`;RS={B,x,ph};
  const nw=new Set();for(let k=lb(tl,t-12);k<tl.length&&tl[k].s<=t;k++){const n=tl[k];if(t<n.e&&n.el&&!n.rest)nw.add(n)}
  act.forEach(n=>{if(!nw.has(n))n.el.classList.remove('on')});
  nw.forEach(n=>{if(!act.has(n)){n.el.style.setProperty('--c',n.c);n.el.classList.add('on')}});act=nw;
@@ -688,7 +698,7 @@ function exitFs(){const st=$('stage');if(!st.classList.contains('fs'))return;
  moved.forEach(r=>r.p.insertBefore(r.e,r.n));moved=[];st.classList.remove('fs');$('bar').classList.remove('min');$('fsm').textContent='Meno comandi';document.body.style.overflow='';
  try{if(document.fullscreenElement){const r=document.exitFullscreen();if(r&&r.catch)r.catch(()=>{})}}catch(e){}
  setTimeout(renderSheet,350)}
-$('fsb').onclick=enterFs;$('fsx').onclick=exitFs;
+$('fsb').onclick=$('fsc').onclick=enterFs;$('fzx').onclick=exitFs;$('fsx').onclick=exitFs;
 $('fsm').onclick=()=>{const m=$('bar').classList.toggle('min');$('fsm').textContent=m?'Più comandi':'Meno comandi'};
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)exitFs()});
 addEventListener('keydown',e=>{if(e.key==='Escape')exitFs()});
@@ -874,10 +884,11 @@ function askGuitar(gi){const m=$('gmod');
   ox.fillStyle=snap.bg;ox.fillRect(0,0,OW,OH);
   {const sy=Math.max(0,vy),dy=(sy-vy)*o;ox.drawImage(snap.c,0,sy*kb,snap.W*kb,(OH/o)*kb,0,dy,OW,OH)}
   const X=v=>v*o,Y=v=>(v-vy)*o;
+  {const ty2=Y(18*sz)+30*sz*o*.95;if(ty2>-40*o){ox.save();ox.fillStyle=getComputedStyle($('sheet')).getPropertyValue('--note')||'#1d2340';ox.font='700 '+Math.round(30*sz*o)+'px Fredoka, "Trebuchet MS", sans-serif';ox.textAlign='center';ox.fillText(score.title||'',OW/2,ty2,OW*.84);ox.restore()}}
   ox.globalAlpha=.25;ox.fillStyle=sun;rr2(X(B.x*sz),Y(B.y*sz),X(B.w*sz),B.h*sz*o,14*o);ox.fill();ox.globalAlpha=1;
   act.forEach(n=>{const L=nbox.get(n);if(!L)return;ox.save();ox.shadowColor=n.c;ox.shadowBlur=16;ox.fillStyle=n.c;ox.globalAlpha=.75;L.forEach(b=>{ox.beginPath();ox.ellipse(X(b[0]+b[2]/2),Y(b[1]+b[3]/2),b[2]*o*.62,b[3]*o*.68,0,0,7);ox.fill()});ox.restore()});
   const cx=X(RS.x*sz);ox.save();ox.shadowColor=acc2;ox.shadowBlur=14;ox.globalAlpha=.6;ox.fillStyle=acc2;rr2(cx-3*o,Y(B.y*sz),6*o,B.h*sz*o,3*o);ox.fill();ox.restore();
-  if(ballOn){const by=Y(B.y*sz)-14*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*16*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill()}
+  if(ballOn){const by=Y(B.y*sz)+17*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*12*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill()}
   if(!playing&&pos>=score.end-.01&&rec&&rec.state==='recording'&&!stopT)stopT=setTimeout(()=>{stopT=0;$('recstop').onclick()},800);
  }
  $('fzrec').onclick=()=>$('rec').onclick();
@@ -916,6 +927,16 @@ function askGuitar(gi){const m=$('gmod');
  $('recpz').onclick=()=>{if(!rec)return;if(rec.state==='recording'){rec.pause();acc+=Date.now()-t0;pause();$('recpz').textContent='Riprendi';$('recbar').classList.add('paused')}else if(rec.state==='paused'){start();rec.resume();t0=Date.now();$('recpz').textContent='Pausa';$('recbar').classList.remove('paused')}};
  $('recstop').onclick=()=>{if(rec&&rec.state!=='inactive'){if(rec.state==='recording')acc+=Date.now()-t0,t0=Date.now();pause();rec.stop()}};
 }
+/* pulsanti trasparenti a schermo intero */
+['fzoom','recbar'].forEach(k=>{const el=k==='fzoom'?document.querySelector('.fzoom'):$('recbar');let t=0;const fs=()=>$('stage').classList.contains('fs');
+ const show=()=>{el.classList.add('show');clearTimeout(t);t=setTimeout(()=>el.classList.remove('show'),3000)};
+ el.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')show()});
+ el.addEventListener('pointerdown',e=>{if(fs()&&e.pointerType!=='mouse'&&!el.classList.contains('show'))el.dataset.block='1';show()},true);
+ el.addEventListener('click',e=>{if(el.dataset.block){delete el.dataset.block;e.stopPropagation();e.preventDefault()}},true)});
+$('stitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur()}});
+$('stitle').addEventListener('click',e=>e.stopPropagation());
+$('stitle').addEventListener('blur',e=>{if(!score)return;const t=e.target.textContent.trim()||score.otitle;e.target.textContent=t;score.title=t;$('title').textContent=t;
+ try{const CT=JSON.parse(localStorage.getItem('ss_tit')||'{}');if(t===score.otitle)delete CT[score.otitle];else CT[score.otitle]=t;localStorage.setItem('ss_tit',JSON.stringify(CT))}catch(x){}});
 demo();setSpeed(100);frame();
 }
 </script>
