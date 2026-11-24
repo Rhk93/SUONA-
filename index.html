@@ -19,7 +19,6 @@
 :root{color-scheme:light dark;--bg:light-dark(#fff7d6,#141826);--ink:light-dark(#1d2340,#f3f1ea);--card:light-dark(#ffffff,#1f2538);--line:light-dark(#f0d98a,#2e3654);--stage:#16244a;--acc:#ff5a5f;--sun:#ffc93c;--teal:#1fb5a8;--paper:light-dark(#fffdf6,#1c2236);--staff:light-dark(#e2b93b,#6b6f8f);--note:light-dark(#1d2340,#f3f1ea);font-size:var(--fs,16px)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-[hidden]{display:none!important}
 body{margin:0;background:var(--bg);transition:background .3s;color:var(--ink);font:1rem/1.5 Fredoka,"Trebuchet MS",system-ui,sans-serif;overflow-x:clip}
 .wrap{max-width:1100px;margin:0 auto;padding:12px max(3vw,12px) 28px}
 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -878,7 +877,6 @@ function askGuitar(gi){const m=$('gmod');
   if(!playing&&pos>=score.end-.01&&rec&&rec.state==='recording')setTimeout(()=>$('recstop').onclick(),800);
  }
  $('fzrec').onclick=()=>$('rec').onclick();
- if(!(/Electron/i.test(navigator.userAgent)||(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()))){$('rec').hidden=true;$('fzrec').hidden=true}
  $('rec').onclick=()=>{const p=$('recp');p.hidden=!p.hidden;if(!can){$('recmsg').textContent='Questo browser non permette di registrare video. Usa Chrome, Edge o l\'app.';$('recgo').disabled=true}};
  $('recx').onclick=()=>$('recp').hidden=true;
  $('recgo').onclick=async()=>{
