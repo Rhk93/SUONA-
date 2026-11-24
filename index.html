@@ -968,12 +968,16 @@ function askGuitar(gi){const m=$('gmod');
    $('recp').hidden=false;$('recmsg').textContent='Registrazione pronta ('+fmt(el()/1000)+', '+(blob.size/1048576).toFixed(1)+' MB).'+(ext==='webm'?' Questo browser non registra in MP4: il video è in WebM e si apre con VLC.':'');
    $('recout').innerHTML=`<button class="open" id="recsave">Salva video ${ext.toUpperCase()}…</button>`;rec=null;
    $('recsave').onclick=async()=>{
-    const C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Filesystem){const FS=C.Plugins.Filesystem;$('recmsg').textContent='Salvo il video…';
-     const b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(',')[1]);f.readAsDataURL(blob)});let where='';
-     try{await FS.writeFile({path:'SUONA/'+nm,data:b64,directory:'DOCUMENTS',recursive:true});where='Documenti › SUONA › '+nm}catch(e){}
-     $('recmsg').textContent=where?'Video salvato in '+where+'. Puoi anche condividerlo.':'Scegli dove salvare il video dal menu Condividi.';
-     try{const w=await FS.writeFile({path:nm,data:b64,directory:'CACHE'});if(C.Plugins.Share)await C.Plugins.Share.share({title:nm,files:[w.uri]})}catch(e){}
-     return}
+    const C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Filesystem){const FS=C.Plugins.Filesystem,btn=$('recsave');btn.disabled=true;
+     const b64=bl=>new Promise((ok,ko)=>{const f=new FileReader();f.onload=()=>ok(String(f.result).split(',')[1]||'');f.onerror=ko;f.readAsDataURL(bl)});
+     const path='SUONA/'+nm,CH=3*1024*1024;let dir='DOCUMENTS',first=true;
+     try{for(let off=0;off<blob.size;off+=CH){const opt={path,data:await b64(blob.slice(off,off+CH)),directory:dir,recursive:true};
+       try{if(first)await FS.writeFile(opt);else await FS.appendFile(opt)}catch(e){if(first&&dir==='DOCUMENTS'){dir='CACHE';off-=CH;continue}throw e}
+       first=false;$('recmsg').textContent='Salvo il video… '+Math.min(100,Math.round((off+CH)/blob.size*100))+'%'}
+      $('recmsg').textContent=dir==='DOCUMENTS'?'Video salvato in Documenti › SUONA › '+nm:'Scegli dove salvare il video dal menu Condividi.';
+      try{const u=await FS.getUri({path,directory:dir});if(C.Plugins.Share)await C.Plugins.Share.share({title:nm,files:[u.uri]})}catch(e){}}
+     catch(e){$('recmsg').textContent='Non riesco a salvare il video: '+(e&&e.message||e)}
+     btn.disabled=false;return}
     if(window.showSaveFilePicker){try{const h=await showSaveFilePicker({suggestedName:nm,types:[{description:'Video '+ext.toUpperCase(),accept:{[type.split(';')[0]]:['.'+ext]}}]});const w=await h.createWritable();await w.write(blob);await w.close();$('recmsg').textContent='Video salvato: '+h.name;return}catch(e){if(e&&e.name==='AbortError')return}}
     const a=document.createElement('a');a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();$('recmsg').textContent='Video salvato nella cartella Download: '+nm}};
   recOn=true;rec.start(1000);t0=Date.now();$('recp').hidden=true;$('recout').innerHTML='';$('recbar').hidden=false;$('recbar').classList.remove('paused');$('recpz').textContent='Pausa';tmr=setInterval(tick,250);tick();
