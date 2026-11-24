@@ -19,6 +19,7 @@
 :root{color-scheme:light dark;--bg:light-dark(#fff7d6,#141826);--ink:light-dark(#1d2340,#f3f1ea);--card:light-dark(#ffffff,#1f2538);--line:light-dark(#f0d98a,#2e3654);--stage:#16244a;--acc:#ff5a5f;--sun:#ffc93c;--teal:#1fb5a8;--paper:light-dark(#fffdf6,#1c2236);--staff:light-dark(#e2b93b,#6b6f8f);--note:light-dark(#1d2340,#f3f1ea);font-size:var(--fs,16px)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);transition:background .3s;color:var(--ink);font:1rem/1.5 Fredoka,"Trebuchet MS",system-ui,sans-serif;overflow-x:clip}
 .wrap{max-width:1100px;margin:0 auto;padding:12px max(3vw,12px) 28px}
 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -119,7 +120,7 @@ details.sub{border-top:1px dashed var(--line)}details.sub summary{cursor:pointer
 .vol{flex:0 1 160px;min-width:110px;font-size:.8rem}
 #allb .arow button{min-height:36px;padding:0 12px;font-size:.85rem}
 .recb{padding:0;color:var(--ink)}
-.recp{display:grid;gap:10px}.recp[hidden],.recbar[hidden],.modal[hidden]{display:none!important}
+.recp{display:grid;gap:10px;position:fixed;top:70px;right:10px;z-index:125;width:min(380px,calc(100vw - 20px));margin:0;box-shadow:0 12px 40px #0006;max-height:calc(100vh - 90px);overflow:auto}.recp[hidden],.recbar[hidden],.modal[hidden]{display:none!important}
 .recbar{position:fixed;top:10px;right:10px;z-index:130;display:flex;gap:8px;align-items:center;background:var(--card);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:0 0 18px #ff3b5c77;backdrop-filter:blur(8px)}
 .recbar button{min-height:36px;padding:0 12px}
 .rdot{width:12px;height:12px;border-radius:50%;background:#ff3b5c;animation:bl 1s infinite}.recbar.paused .rdot{animation:none;opacity:.35}
@@ -174,7 +175,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <b>Registra lo schermo</b>
  <label class="fixl">Qualità del video<select id="recq"><option value="alta">Alta · 1080p</option><option value="media" selected>Media · 720p</option><option value="bassa">Bassa · 480p (file leggero)</option></select></label>
  <div class="pre"><button id="recgo">Avvia registrazione</button><button id="recx">Chiudi</button></div>
- <div class="note" id="recmsg">Quando il browser lo chiede, scegli questa scheda (o la finestra dell'app). Vengono registrati la partitura, il puntatore del mouse e l'audio dell'app, non il microfono.</div>
+ <div class="note" id="recmsg">Registra solo lo spartito che scorre, con le note che si illuminano e l'audio dell'app (non il microfono). La musica parte da sola e la registrazione si ferma a fine brano.</div>
  <div id="recout"></div>
 </div>
 <div class="recbar" id="recbar" hidden><span class="rdot"></span><span id="rect">0:00</span><button id="recpz">Pausa</button><button id="recstop">Stop</button></div>
@@ -212,7 +213,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <label id="phl">Altezza riquadro<input type="range" id="ph" min="30" max="95"></label>
 </div></details>
 <div id="stage"><div class="sheet" id="sheet"><div class="in" id="sin"><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
-<div class="fzoom"><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button></div>
+<div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button></div>
 <div class="bar" id="bar"><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
 <div class="ctrl" id="ctrl">
  <button class="play" id="play" aria-label="Suona">▶</button>
@@ -544,7 +545,7 @@ const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60
 
 /* ---------- spartito ---------- */
 let sz=1;try{sz=+localStorage.getItem('ss_sz')||1}catch(e){}
-let tl=[],boxes=[],act=new Set(),lastRow=-1,lastW=0;
+let tl=[],boxes=[],act=new Set(),lastRow=-1,lastW=0,RS=null,recOn=false,snapBuild=null;
 const RK={treble:'b/4',bass:'d/3',alto:'c/4',tenor:'a/3',percussion:'b/4'};
 const KN=['Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#','C#'];
 const lb=(a,t)=>{let x=0,y=a.length;while(x<y){const m=(x+y)>>1;if(a[m].s<t)x=m+1;else y=m}return x};
@@ -637,6 +638,7 @@ function renderSheet(){
  const svg=host.querySelector('svg');
  PN.forEach(q=>{svgEl(svg,'rect',{x:q.x-14,y:q.y-1,width:6,height:q.h+2,rx:3,class:'pbar',style:'fill:'+q.c});if(q.n){const t=svgEl(svg,'text',{x:q.x+18,y:q.y-12,class:'pnm',style:'fill:'+q.c},q.n);}});
  if(lblMode!=='none')drawLabels(svg,groups);
+ if(recOn&&snapBuild)setTimeout(snapBuild,50);
 }
 function updSheet(t){
  if(!boxes.length)return;
@@ -647,7 +649,7 @@ function updSheet(t){
  c.style.left=x*sz+'px';c.style.top=B.y*sz+'px';c.style.height=B.h*sz+'px';
  m.style.left=B.x*sz+'px';m.style.top=B.y*sz+'px';m.style.width=B.w*sz+'px';m.style.height=B.h*sz+'px';
  let s0=score.tp[0];for(const q of score.tp)if(q.t<=t)s0=q;const ph=(s0.b+(t-s0.t)*s0.q)%1;
- $('ball').style.transform=`translateY(${playing?-Math.abs(Math.sin(ph*Math.PI))*16:0}px)`;
+ $('ball').style.transform=`translateY(${playing?-Math.abs(Math.sin(ph*Math.PI))*16:0}px)`;RS={B,x,ph};
  const nw=new Set();for(let k=lb(tl,t-12);k<tl.length&&tl[k].s<=t;k++){const n=tl[k];if(t<n.e&&n.el&&!n.rest)nw.add(n)}
  act.forEach(n=>{if(!nw.has(n))n.el.classList.remove('on')});
  nw.forEach(n=>{if(!act.has(n)){n.el.style.setProperty('--c',n.c);n.el.classList.add('on')}});act=nw;
@@ -676,7 +678,7 @@ $('ph').oninput=e=>{shH=+e.target.value;sv('ss_sh',shH);$('sheet').style.height=
 syncP();$('bpr').value=String(bpr);$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
 let moved=[];
 function enterFs(){const st=$('stage');if(st.classList.contains('fs'))return;
- moved=['lblw','prop','ctrl','spd'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};$('bar').insertBefore(e,$('fsm'));return r});
+ moved=['lblw','prop','ctrl','spd','recp','recbar','gmod'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};if(['recp','recbar','gmod'].includes(id))st.appendChild(e);else $('bar').insertBefore(e,$('fsm'));return r});
  st.classList.add('fs');document.body.style.overflow='hidden';
  try{const r=st.requestFullscreen?st.requestFullscreen():st.webkitRequestFullscreen?.();if(r&&r.catch)r.catch(()=>{})}catch(e){}
  setTimeout(renderSheet,350)}
@@ -846,32 +848,64 @@ try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.tes
 function askGuitar(gi){const m=$('gmod');
  $('gbtn').innerHTML=gi.map((i,k)=>`<button data-g="${i}">Chitarra ${k+1}${parts[i].name.trim().toLowerCase()==='chitarra '+(k+1)?'':'<small>'+parts[i].name.replace(/[<&]/g,'')+'</small>'}</button>`).join('')+'<button data-g="all">Entrambe</button>';
  m.hidden=false;m.onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;const g=b.dataset.g;gi.forEach(i=>parts[i].show=g==='all'||+g===i);m.hidden=true;renderParts();renderSheet()}}
-/* ---------- registra schermo ---------- */
-{let rec=null,ds=null,chunks=[],t0=0,acc=0,tmr=0,url='';
- const can=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia&&window.MediaRecorder);
+/* ---------- registra spartito ---------- */
+{let rec=null,chunks=[],t0=0,acc=0,tmr=0,url='',oc=null,ox=null,snap=null,kb=1,nbox=new Map(),vy=0,raf=0,vtr=null;
+ const can=!!(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream);
  const el=()=>acc+(rec&&rec.state==='recording'?Date.now()-t0:0);
  const tick=()=>{$('rect').textContent=fmt(el()/1000)};
- $('rec').onclick=()=>{const p=$('recp');p.hidden=!p.hidden;if(!can){$('recmsg').textContent='Su questo dispositivo il browser non permette di registrare lo schermo. Usa il computer (Chrome o Edge) o l\'app per Windows/Mac.';$('recgo').disabled=true}};
+ const PROPS=['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','font-family','font-size','font-weight','visibility','display','stroke-linecap','stroke-linejoin'];
+ snapBuild=()=>new Promise(res=>{const sv=$('svg').querySelector('svg');if(!sv){res();return}
+  act.forEach(n=>n.el&&n.el.classList.remove('on'));act=new Set();
+  const cl=sv.cloneNode(true),A=[sv,...sv.querySelectorAll('*')],B=[cl,...cl.querySelectorAll('*')];
+  A.forEach((e,i)=>{const cs=getComputedStyle(e);B[i].setAttribute('style',PROPS.map(p=>p+':'+cs.getPropertyValue(p)).join(';'))});
+  cl.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  const W=sv.clientWidth||sv.width.baseVal.value,H=sv.clientHeight||sv.height.baseVal.value;cl.setAttribute('width',W);cl.setAttribute('height',H);
+  nbox=new Map();tl.forEach(n=>{if(!n.el||n.rest)return;const hs=[...n.el.querySelectorAll('.vf-notehead')];const L=(hs.length?hs:[n.el]).map(h=>{try{const b=h.getBBox();return[b.x*sz,b.y*sz,b.width*sz,b.height*sz]}catch(e){return null}}).filter(Boolean);nbox.set(n,L)});
+  const img=new Image(),u=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(cl)],{type:'image/svg+xml'}));
+  img.onload=()=>{const o=oc.width/W;kb=Math.min(o*1.5,15000/H,15000/W);const c=document.createElement('canvas');c.width=Math.ceil(W*kb);c.height=Math.ceil(H*kb);const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);snap={c,W,H,bg:getComputedStyle($('sheet')).backgroundColor||'#fff'};URL.revokeObjectURL(u);res()};
+  img.onerror=()=>{URL.revokeObjectURL(u);res()};img.src=u});
+ const rr2=(x,y,w,h,r)=>{ox.beginPath();ox.roundRect?ox.roundRect(x,y,w,h,r):ox.rect(x,y,w,h)};
+ function draw(){if(!recOn)return;raf=requestAnimationFrame(draw);if(!snap||!RS)return;
+  const OW=oc.width,OH=oc.height,o=OW/snap.W,B=RS.B,acc2=getComputedStyle(document.body).getPropertyValue('--acc')||'#ff5a5f',sun=getComputedStyle(document.body).getPropertyValue('--sun')||'#ffc93c';
+  const ty=Math.max(-40,Math.min(snap.H-OH/o,B.y*sz-(OH/o)*.12));vy+=(ty-vy)*.12;if(Math.abs(ty-vy)<.5)vy=ty;
+  ox.fillStyle=snap.bg;ox.fillRect(0,0,OW,OH);
+  {const sy=Math.max(0,vy),dy=(sy-vy)*o;ox.drawImage(snap.c,0,sy*kb,snap.W*kb,(OH/o)*kb,0,dy,OW,OH)}
+  const X=v=>v*o,Y=v=>(v-vy)*o;
+  ox.globalAlpha=.25;ox.fillStyle=sun;rr2(X(B.x*sz),Y(B.y*sz),X(B.w*sz),B.h*sz*o,14*o);ox.fill();ox.globalAlpha=1;
+  act.forEach(n=>{const L=nbox.get(n);if(!L)return;ox.save();ox.shadowColor=n.c;ox.shadowBlur=16;ox.fillStyle=n.c;ox.globalAlpha=.75;L.forEach(b=>{ox.beginPath();ox.ellipse(X(b[0]+b[2]/2),Y(b[1]+b[3]/2),b[2]*o*.62,b[3]*o*.68,0,0,7);ox.fill()});ox.restore()});
+  const cx=X(RS.x*sz);ox.save();ox.shadowColor=acc2;ox.shadowBlur=14;ox.globalAlpha=.6;ox.fillStyle=acc2;rr2(cx-3*o,Y(B.y*sz),6*o,B.h*sz*o,3*o);ox.fill();ox.restore();
+  const by=Y(B.y*sz)-14*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*16*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill();
+  if(!playing&&pos>=score.end-.01&&rec&&rec.state==='recording')setTimeout(()=>$('recstop').onclick(),800);
+ }
+ $('fzrec').onclick=()=>$('rec').onclick();
+ if(!(/Electron/i.test(navigator.userAgent)||(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()))){$('rec').hidden=true;$('fzrec').hidden=true}
+ $('rec').onclick=()=>{const p=$('recp');p.hidden=!p.hidden;if(!can){$('recmsg').textContent='Questo browser non permette di registrare video. Usa Chrome, Edge o l\'app.';$('recgo').disabled=true}};
  $('recx').onclick=()=>$('recp').hidden=true;
  $('recgo').onclick=async()=>{
+  if(!boxes.length){$('recmsg').textContent='Prima deve comparire lo spartito (serve internet per disegnarlo).';return}
   const Q={alta:[1920,1080,8e6],media:[1280,720,4e6],bassa:[854,480,15e5]}[$('recq').value];
   initAudio();try{actx.resume()}catch(e){}
-  try{ds=await navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:Q[0]},height:{ideal:Q[1]},frameRate:{ideal:30},cursor:'always'},audio:false,preferCurrentTab:true,selfBrowserSurface:'include'})}
-  catch(e){$('recmsg').textContent='Registrazione annullata.';return}
-  const st=new MediaStream([...ds.getVideoTracks(),...recDest.stream.getAudioTracks()]);
+  oc=document.createElement('canvas');oc.width=Q[0];oc.height=Q[1];ox=oc.getContext('2d');snap=null;vy=0;
+  $('recmsg').textContent='Preparo lo spartito…';await snapBuild();
+  if(!snap){$('recmsg').textContent='Non riesco a preparare lo spartito per il video.';return}
+  const vs=oc.captureStream(30);vtr=vs.getVideoTracks()[0];
+  const st=new MediaStream([vtr,...recDest.stream.getAudioTracks()]);
   const mt=['video/mp4;codecs="avc1.42E01F,mp4a.40.2"','video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
   try{rec=new MediaRecorder(st,{mimeType:mt||undefined,videoBitsPerSecond:Q[2],audioBitsPerSecond:192000})}catch(e){rec=new MediaRecorder(st)}
   chunks=[];acc=0;rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  rec.onstop=()=>{clearInterval(tmr);ds.getTracks().forEach(t=>t.stop());$('recbar').hidden=true;
+  rec.onstop=()=>{clearInterval(tmr);recOn=false;cancelAnimationFrame(raf);try{vtr.stop()}catch(e){}$('recbar').hidden=true;
    const type=rec.mimeType||mt||'video/webm',ext=/mp4/.test(type)?'mp4':'webm',blob=new Blob(chunks,{type});
    if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);
    const nm=('SUONA-'+($('title').textContent||'registrazione')).replace(/[^\w\-àèéìòù ]+/gi,'').trim().replace(/\s+/g,'-').slice(0,60)+'.'+ext;
-   $('recp').hidden=false;$('recmsg').textContent='Registrazione pronta ('+fmt(el()/1000)+', '+(blob.size/1048576).toFixed(1)+' MB).'+(ext==='webm'?' Questo browser non registra in MP4: il video è in WebM e si apre con VLC; con Chrome o Edge aggiornati viene in MP4.':'');
-   $('recout').innerHTML=`<a class="btn open" href="${url}" download="${nm}">Salva video ${ext.toUpperCase()}</a>`;rec=null};
-  ds.getVideoTracks()[0].onended=()=>{if(rec&&rec.state!=='inactive')rec.stop()};
-  rec.start(1000);t0=Date.now();$('recp').hidden=true;$('recout').innerHTML='';$('recbar').hidden=false;$('recbar').classList.remove('paused');$('recpz').textContent='Pausa';tmr=setInterval(tick,250);tick()};
- $('recpz').onclick=()=>{if(!rec)return;if(rec.state==='recording'){rec.pause();acc+=Date.now()-t0;$('recpz').textContent='Riprendi';$('recbar').classList.add('paused')}else if(rec.state==='paused'){rec.resume();t0=Date.now();$('recpz').textContent='Pausa';$('recbar').classList.remove('paused')}};
- $('recstop').onclick=()=>{if(rec&&rec.state!=='inactive'){if(rec.state==='recording')acc+=Date.now()-t0,t0=Date.now();rec.stop()}};
+   $('recp').hidden=false;$('recmsg').textContent='Registrazione pronta ('+fmt(el()/1000)+', '+(blob.size/1048576).toFixed(1)+' MB).'+(ext==='webm'?' Questo browser non registra in MP4: il video è in WebM e si apre con VLC.':'');
+   $('recout').innerHTML=`<button class="open" id="recsave">Salva video ${ext.toUpperCase()}…</button>`;rec=null;
+   $('recsave').onclick=async()=>{
+    if(window.showSaveFilePicker){try{const h=await showSaveFilePicker({suggestedName:nm,types:[{description:'Video '+ext.toUpperCase(),accept:{[type.split(';')[0]]:['.'+ext]}}]});const w=await h.createWritable();await w.write(blob);await w.close();$('recmsg').textContent='Video salvato: '+h.name;return}catch(e){if(e&&e.name==='AbortError')return}}
+    const a=document.createElement('a');a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();$('recmsg').textContent='Video salvato nella cartella Download: '+nm}};
+  recOn=true;rec.start(1000);t0=Date.now();$('recp').hidden=true;$('recout').innerHTML='';$('recbar').hidden=false;$('recbar').classList.remove('paused');$('recpz').textContent='Pausa';tmr=setInterval(tick,250);tick();
+  if(!playing){if(pos>=score.end)pos=0;start()}draw()};
+ $('recpz').onclick=()=>{if(!rec)return;if(rec.state==='recording'){rec.pause();acc+=Date.now()-t0;pause();$('recpz').textContent='Riprendi';$('recbar').classList.add('paused')}else if(rec.state==='paused'){start();rec.resume();t0=Date.now();$('recpz').textContent='Pausa';$('recbar').classList.remove('paused')}};
+ $('recstop').onclick=()=>{if(rec&&rec.state!=='inactive'){if(rec.state==='recording')acc+=Date.now()-t0,t0=Date.now();pause();rec.stop()}};
 }
 demo();setSpeed(100);frame();
 }
