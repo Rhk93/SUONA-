@@ -141,6 +141,7 @@ details.sub{border-top:1px dashed var(--line)}details.sub summary{cursor:pointer
 .mcard h3{margin:0;font-size:1.25rem}#gbtn{display:grid;gap:10px}#gbtn button{flex-direction:column;min-height:56px}#gbtn small{font-weight:500;opacity:.7;font-size:.8rem}
 body[data-t=neon] .mcard{background:#11123af0;border:1px solid #00f0ff66;box-shadow:0 0 40px #00f0ff33}
 .brkhint{display:grid;gap:6px;border:2px dashed var(--acc)}
+#brkrows{display:grid;gap:4px;max-height:34vh;overflow:auto}.brow{display:flex;align-items:center;gap:8px;padding:2px 0}.brow span{width:4.2em;font-weight:600}.brow b{min-width:1.6em;text-align:center;font-size:1.15rem}.brow small{opacity:.65}.brow button{min-height:38px;min-width:38px;padding:0}.brow.fix span{color:var(--acc)}
 .sheet.brkedit{border-style:dashed;cursor:pointer}
 #brk[aria-pressed=true]{background:var(--acc);color:#fff}
 .lbt{font:600 13px Fredoka,sans-serif;fill:var(--note)}
@@ -226,7 +227,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <label>Battute per riga<select id="bpr"><option value="0">Automatico</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></label>
  <label id="phl">Altezza riquadro<input type="range" id="ph" min="30" max="95"></label>
 </div></details>
-<div class="box brkhint" id="brkhint" hidden><b>A capo manuale</b><span class="note">Tocca una battuta per mandarla a capo. Tocca la prima battuta di un rigo per riportarla nel rigo sopra.</span><div class="pre"><button id="brkok">Fatto</button><button id="brkr">Ripristina</button></div></div>
+<div class="box brkhint" id="brkhint" hidden><b>A capo manuale</b><span class="note">Scegli quante battute mettere in ogni rigo, oppure tocca una battuta nello spartito per mandarla a capo (la prima di un rigo la riporta su). I righi dopo seguono «Battute per riga».</span><div id="brkrows"></div><div class="pre"><button id="brkok">Fatto</button><button id="brkr">Ripristina</button></div></div>
 <div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
 <div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button><button id="fzx" aria-label="Esci dallo schermo intero" title="Esci dallo schermo intero"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"/></svg></button></div>
 <div class="bar" id="bar"><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
@@ -580,8 +581,9 @@ const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60
 
 /* ---------- spartito ---------- */
 let sz=1;try{sz=+localStorage.getItem('ss_sz')||1}catch(e){}
-let lastRows=[],brkEdit=false,BRK={};try{BRK=JSON.parse(localStorage.getItem('ss_brk')||'{}')}catch(e){}
-const brkFor=()=>{const a=score&&BRK[score.otitle];return a?new Set(a):null};
+let lastRows=[],brkEdit=false,BRK={};try{BRK=JSON.parse(localStorage.getItem('ss_rowc')||'{}')}catch(e){}
+const rowsFor=()=>{const a=score&&BRK[score.otitle];return a&&a.length?a:null};
+const setRows=a=>{BRK[score.otitle]=a;try{localStorage.setItem('ss_rowc',JSON.stringify(BRK))}catch(e){}renderSheet()};
 let tl=[],boxes=[],act=new Set(),lastRow=-1,lastW=0,RS=null,recOn=false,snapBuild=null;
 const RK={treble:'b/4',bass:'d/3',alto:'c/4',tenor:'a/3',percussion:'b/4'};
 const KN=['Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#','C#'];
@@ -597,12 +599,12 @@ function renderSheet(){
  const ws=[];for(let mi=0;mi<nM;mi++){let c=0;VS.forEach(st=>{const M=st.ms[mi];if(M)M.voices.forEach(v=>c=Math.max(c,v.length))});ws.push(Math.max(110,60+30*c)*spF)}
  const modW=mi=>45+Math.abs(VS[0].ms[mi].key)*10+(mi===0?30:0);
  const rows=[];let row=[],used=0;
- const CB=brkFor();
- if(CB){let r=[];for(let mi=0;mi<nM;mi++){if(mi&&CB.has(mi)&&r.length){rows.push(r);r=[]}r.push(mi)}if(r.length)rows.push(r)}
- else if(bpr>0)for(let i=0;i<nM;i+=bpr)rows.push([...Array(Math.min(bpr,nM-i)).keys()].map(k=>i+k));
- else for(let mi=0;mi<nM;mi++){const w=ws[mi]+(row.length?0:modW(mi));if(row.length&&used+w>LW-20){rows.push(row);row=[];used=0;mi--;continue}row.push(mi);used+=w}
- if(!bpr&&!CB&&row.length)rows.push(row);
+ const CR=rowsFor();let m0=0;
+ if(CR){for(const c of CR){if(m0>=nM)break;const k=Math.max(1,Math.min(c,nM-m0));rows.push([...Array(k).keys()].map(q=>m0+q));m0+=k}}
+ if(bpr>0)for(let i=m0;i<nM;i+=bpr)rows.push([...Array(Math.min(bpr,nM-i)).keys()].map(k=>i+k));
+ else{for(let mi=m0;mi<nM;mi++){const w=ws[mi]+(row.length?0:modW(mi));if(row.length&&used+w>LW-20){rows.push(row);row=[];used=0;mi--;continue}row.push(mi);used+=w}if(row.length)rows.push(row)}
  lastRows=rows;
+ if(brkEdit){const C=rowsFor()||[];$('brkrows').innerHTML=rows.map((R,i)=>`<div class="brow${i<C.length?' fix':''}"><span>Rigo ${i+1}</span><button data-r="${i}" data-d="-1" aria-label="Una battuta in meno">−</button><b>${R.length}</b><button data-r="${i}" data-d="1" aria-label="Una battuta in più">+</button><small>battute ${R[0]+1}–${R[R.length-1]+1}</small></div>`).join('')}
  const yo=[];let yy=0;VS.forEach((st,si)=>{if(si&&st.pi!==VS[si-1].pi)yy+=34;yo.push(yy);yy+=SH});const X0=S>1?22:10,PN=[];
  const rowH=yy+30,H=top+rows.length*rowH+20;
  $('stitle').hidden=false;$('stitle').style.fontSize=Math.round(30*sz)+'px';$('stitle').style.top=Math.round(18*sz)+'px';
@@ -611,7 +613,7 @@ function renderSheet(){
  const pend={},groups=[];
  rows.forEach((row,ri)=>{
   const base=row.map((mi,ci)=>ws[mi]+(ci?0:modW(mi))),sum=base.reduce((a,b)=>a+b,0);
-  const fill=CB?(ri===rows.length-1&&ri>0&&row.length<rows[ri-1].length?(LW-X0-10)*(row.length/rows[ri-1].length)/sum:(LW-X0-10)/sum):bpr>0?(LW-X0-10)*(row.length/bpr)/sum:(ri<rows.length-1||sum>LW*.7)?(LW-X0-10)/sum:1;
+  const CB=CR;const fill=CB?(ri===rows.length-1&&ri>0&&row.length<rows[ri-1].length?(LW-X0-10)*(row.length/rows[ri-1].length)/sum:(LW-X0-10)/sum):bpr>0?(LW-X0-10)*(row.length/bpr)/sum:(ri<rows.length-1||sum>LW*.7)?(LW-X0-10)/sum:1;
   let x=X0;const y0=top+ri*rowH;
   row.forEach((mi,ci)=>{
    const w=base[ci]*fill;
@@ -701,7 +703,8 @@ function updSheet(t){
 $('sin').addEventListener('click',e=>{
  if(!boxes.length)return;const r=$('sin').getBoundingClientRect(),x=(e.clientX-r.left)/sz,y=(e.clientY-r.top)/sz;
  const B=boxes.find(b=>x>=b.x&&x<=b.x+b.w&&y>=b.y-15&&y<=b.y+b.h+25);if(!B)return;
- if(brkEdit){if(!B.mi)return;const k=score.otitle;let a=BRK[k]?[...BRK[k]]:lastRows.slice(1).map(r=>r[0]);a=a.includes(B.mi)?a.filter(v=>v!==B.mi):[...a,B.mi].sort((p,q)=>p-q);BRK[k]=a;try{localStorage.setItem('ss_brk',JSON.stringify(BRK))}catch(e){}renderSheet();return}
+ if(brkEdit){const r=lastRows.findIndex(R=>R.includes(B.mi));if(r<0)return;const j=lastRows[r].indexOf(B.mi),C=lastRows.map(R=>R.length);
+  if(j>0)setRows([...C.slice(0,r),j]);else if(r>0)setRows([...C.slice(0,r-1),C[r-1]+1]);return}
  let best=B.s,bd=1e9;tl.forEach(n=>{if(n.mi===B.mi&&Math.abs(n.x-x)<bd){bd=Math.abs(n.x-x);best=n.s}});
  seek(l2p(best));if(!playing)start();
 });
@@ -969,9 +972,10 @@ $('stitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(
 $('stitle').addEventListener('click',e=>e.stopPropagation());
 $('stitle').addEventListener('blur',e=>{if(!score)return;const t=e.target.textContent.trim()||score.otitle;e.target.textContent=t;score.title=t;$('title').textContent=t;
  try{const CT=JSON.parse(localStorage.getItem('ss_tit')||'{}');if(t===score.otitle)delete CT[score.otitle];else CT[score.otitle]=t;localStorage.setItem('ss_tit',JSON.stringify(CT))}catch(x){}});
-const setBrk=v=>{brkEdit=v;$('brk').setAttribute('aria-pressed',v);$('brkhint').hidden=!v;$('sheet').classList.toggle('brkedit',v)};
+const setBrk=v=>{brkEdit=v;if(v)setTimeout(renderSheet,0);$('brk').setAttribute('aria-pressed',v);$('brkhint').hidden=!v;$('sheet').classList.toggle('brkedit',v)};
 $('brk').onclick=()=>setBrk(!brkEdit);$('brkok').onclick=()=>setBrk(false);
-$('brkr').onclick=()=>{if(score){delete BRK[score.otitle];try{localStorage.setItem('ss_brk',JSON.stringify(BRK))}catch(e){}renderSheet()}};
+$('brkr').onclick=()=>{if(score){delete BRK[score.otitle];try{localStorage.setItem('ss_rowc',JSON.stringify(BRK))}catch(e){}renderSheet()}};
+$('brkrows').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||!score)return;const r=+b.dataset.r,d=+b.dataset.d,C=lastRows.map(R=>R.length),v=Math.max(1,C[r]+d);setRows([...C.slice(0,r),v])};
 demo();setSpeed(100);frame();
 }
 </script>
