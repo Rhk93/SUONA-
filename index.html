@@ -30,6 +30,7 @@ button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 .open{background:var(--sun);color:#1d2340;box-shadow:0 4px 0 #d79e12;font-size:1.05rem}
 .open input{display:none}
+a.btn{text-decoration:none}
 .info{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
 .title{font-size:1.2rem;font-weight:600;flex:1 1 100%}
 .err{color:var(--acc);font-weight:600}
@@ -108,6 +109,26 @@ textarea,input[type=search],input[type=url]{font:inherit;font-size:16px;width:10
 .li{display:flex;gap:8px}.li .lname{flex:1;justify-content:flex-start;text-align:left;flex-direction:column;align-items:flex-start;padding:8px 16px;border-radius:16px;gap:0}
 .lname small{font-size:.75rem;opacity:.65;font-weight:500}.li.cur .lname{background:linear-gradient(90deg,var(--teal),var(--acc));color:#fff}
 .lx{width:44px;padding:0;font-size:1.3rem}
+details.sub{border-top:1px dashed var(--line)}details.sub summary{cursor:pointer;font-weight:600;padding:10px 0;min-height:44px;list-style:none}details.sub summary::after{content:" ▾"}details.sub[open] summary::after{content:" ▴"}details.sub>.libin{padding:0 0 6px}
+#lib:empty{display:none}
+.instin{padding:0 14px 10px}
+.part{grid-template-columns:auto minmax(0,1fr) auto;padding:6px 0;gap:4px 8px}
+.part .dot{width:16px;height:16px}
+.tg button{min-height:36px;padding:0 10px;font-size:.85rem}
+.prow{gap:8px}.prow select{min-height:36px;font-size:15px;flex:1 1 140px;border-radius:12px}
+.vol{flex:0 1 160px;min-width:110px;font-size:.8rem}
+#allb .arow button{min-height:36px;padding:0 12px;font-size:.85rem}
+.recb{padding:0;color:var(--ink)}
+.recp{display:grid;gap:10px}.recp[hidden],.recbar[hidden],.modal[hidden]{display:none!important}
+.recbar{position:fixed;top:10px;right:10px;z-index:130;display:flex;gap:8px;align-items:center;background:var(--card);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:0 0 18px #ff3b5c77;backdrop-filter:blur(8px)}
+.recbar button{min-height:36px;padding:0 12px}
+.rdot{width:12px;height:12px;border-radius:50%;background:#ff3b5c;animation:bl 1s infinite}.recbar.paused .rdot{animation:none;opacity:.35}
+@keyframes bl{50%{opacity:.2}}
+#rect{font-variant-numeric:tabular-nums;font-weight:600}
+.modal{position:fixed;inset:0;z-index:120;background:#0009;display:grid;place-items:center;padding:20px}
+.mcard{background:var(--card);border-radius:22px;padding:20px;max-width:380px;width:100%;display:grid;gap:12px;backdrop-filter:blur(14px);box-shadow:0 10px 40px #0006}
+.mcard h3{margin:0;font-size:1.25rem}#gbtn{display:grid;gap:10px}#gbtn button{flex-direction:column;min-height:56px}#gbtn small{font-weight:500;opacity:.7;font-size:.8rem}
+body[data-t=neon] .mcard{background:#11123af0;border:1px solid #00f0ff66;box-shadow:0 0 40px #00f0ff33}
 .lbt{font:600 13px Fredoka,sans-serif;fill:var(--note)}
 .cht{font:700 14px Fredoka,sans-serif;fill:#fff}
 .chp{fill:var(--acc)}
@@ -147,8 +168,17 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 <header>
  <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2eaa"/><stop offset=".5" stop-color="#7c3aed"/><stop offset="1" stop-color="#00d6ff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lg)"/><path d="M18 31V15l13-3v16" fill="none" stroke="#fff" stroke-width="3.4" stroke-linejoin="round"/><path d="M18 18l13-3" stroke="#fff" stroke-width="4"/><ellipse cx="14.5" cy="31.5" rx="4.6" ry="3.4" transform="rotate(-20 14.5 31.5)" fill="#fff"/><ellipse cx="27.5" cy="28.5" rx="4.6" ry="3.4" transform="rotate(-20 27.5 28.5)" fill="#fff"/><path d="M36 17a9 9 0 0 1 0 14" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.4" stroke-linecap="round"/></svg>
  <h1>Suona lo <b>Spartito</b></h1>
- <div class="zoom"><button id="zOut" aria-label="Rimpicciolisci">A−</button><button id="zIn" aria-label="Ingrandisci">A+</button></div>
+ <div class="zoom"><button id="rec" class="recb" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#ff3b5c"/></svg></button><button id="zOut" aria-label="Rimpicciolisci">A−</button><button id="zIn" aria-label="Ingrandisci">A+</button></div>
 </header>
+<div class="box recp" id="recp" hidden>
+ <b>Registra lo schermo</b>
+ <label class="fixl">Qualità del video<select id="recq"><option value="alta">Alta · 1080p</option><option value="media" selected>Media · 720p</option><option value="bassa">Bassa · 480p (file leggero)</option></select></label>
+ <div class="pre"><button id="recgo">Avvia registrazione</button><button id="recx">Chiudi</button></div>
+ <div class="note" id="recmsg">Quando il browser lo chiede, scegli questa scheda (o la finestra dell'app). Vengono registrati la partitura, il puntatore del mouse e l'audio dell'app, non il microfono.</div>
+ <div id="recout"></div>
+</div>
+<div class="recbar" id="recbar" hidden><span class="rdot"></span><span id="rect">0:00</span><button id="recpz">Pausa</button><button id="recstop">Stop</button></div>
+<div class="modal" id="gmod" hidden><div class="mcard"><h3>Quale chitarra vuoi vedere?</h3><div id="gbtn"></div><p class="note">Le altre parti restano nascoste ma si sentono. Puoi cambiare da «Strumenti».</p></div></div>
 <div class="info">
  <label class="btn open">Apri spartito<input type="file" id="file"></label>
  <button id="limp">Importa link</button>
@@ -156,14 +186,16 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div>
 <div class="err" id="err"></div>
 <details class="box look" id="libbox"><summary>Brani da link · <span id="libn">0 brani</span></summary><div class="libin">
- <textarea id="links" rows="3" placeholder="Incolla uno o più link, uno per riga: file .mscz .mxl .musicxml, cartelle Mega o GitHub, oppure un file .txt con l'elenco dei brani"></textarea>
- <div class="pre"><button id="ladd">Aggiungi</button><button id="lclr">Svuota elenco</button></div>
- <label class="fixl">Il mio link fisso (si carica da solo ogni volta)<input type="url" id="lfix" placeholder="es. https://github.com/Rhk93/Spartiti"></label>
- <div class="pre"><button id="lfs">Salva link fisso</button><button id="lfu">Aggiorna</button><button id="lfd">Togli</button></div>
  <div class="note" id="lmsg"></div>
  <input type="search" id="lq" placeholder="Cerca un brano" aria-label="Cerca un brano">
  <div id="lib"></div>
- <p class="note">Nel file .txt scrivi un brano per riga: <code>Nome del brano | link</code>. Funzionano anche i link di Mega (file e cartelle, con la chiave dopo il #). Google Drive non permette la lettura.</p>
+ <details class="sub" id="libset"><summary>Importa link e impostazioni</summary><div class="libin">
+  <textarea id="links" rows="3" placeholder="Incolla uno o più link, uno per riga: file .mscz .mxl .musicxml, cartelle Mega o GitHub, oppure un file .txt con l'elenco dei brani"></textarea>
+  <div class="pre"><button id="ladd">Importa</button><button id="lclr">Svuota elenco</button></div>
+  <label class="fixl">Il mio link fisso (si carica da solo ogni volta)<input type="url" id="lfix" placeholder="es. https://github.com/Rhk93/Spartiti"></label>
+  <div class="pre"><button id="lfs">Salva link fisso</button><button id="lfu">Aggiorna</button><button id="lfd">Togli</button></div>
+  <p class="note">Nel file .txt scrivi un brano per riga: <code>Nome del brano | link</code>. Funzionano anche i link di Mega (file e cartelle, con la chiave dopo il #). Google Drive non permette la lettura.</p>
+ </div></details>
 </div></details>
 <div class="tools">
  <label id="lblw">Scritte sotto<select id="lbl"><option value="none">Nessuna</option><option value="note">Nomi delle note</option><option value="mix">Accordi e note</option><option value="chord">Solo accordi</option></select></label>
@@ -176,6 +208,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <label>Grandezza note<input type="range" id="pz" min="50" max="250"></label>
  <label>Larghezza battute<input type="range" id="pb" min="60" max="200"></label>
  <label>Distanza righi<input type="range" id="pr" min="70" max="200"></label>
+ <label>Battute per riga<select id="bpr"><option value="0">Automatico</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></label>
  <label id="phl">Altezza riquadro<input type="range" id="ph" min="30" max="95"></label>
 </div></details>
 <div id="stage"><div class="sheet" id="sheet"><div class="in" id="sin"><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
@@ -191,12 +224,11 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <div class="spd"><span>Lenta</span><input type="range" id="speed" min="20" max="200" value="100" aria-label="Velocità"><span>Veloce</span></div>
  <div class="pre" id="pre"></div>
 </div>
-<div class="box">
- <h2>Strumenti</h2>
+<details class="box look" id="instbox"><summary>Strumenti · <span id="instn"></span></summary><div class="instin">
  <div id="allb"><div class="arow"><b>Vedi</b><button data-a="vs">Tutti</button><button data-a="vn">Nessuno</button><span id="cvv"></span></div><div class="arow"><b>Ascolta</b><button data-a="ha">Tutti</button><button data-a="hn">Nessuno</button><span id="caa"></span></div></div>
  <div id="parts"></div>
  <p class="note">Tocca una nota dello spartito per far partire la musica da lì. Legge MuseScore (.mscz, .mscx) e MusicXML (.musicxml, .mxl, .xml), esportabile da Finale, Sibelius e Dorico. I ritornelli non vengono ripetuti.</p>
-</div>
+</div></details>
 <footer>Copyright © Ignazio Paolicelli</footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.3/build/cjs/vexflow.js"></script>
@@ -206,7 +238,7 @@ const $=id=>document.getElementById(id);
 const COLORS=['#ff5a5f','#ffc93c','#3ddc97','#4cc9f0','#c77dff','#ff9f1c','#f15bb5','#9ef01a'];
 const INST={piano:'Pianoforte',chitarra:'Chitarra classica',chitelet:'Chitarra elettrica',basso:'Basso',arpa:'Arpa',ukulele:'Ukulele',violino:'Violino',cello:'Violoncello',flauto:'Flauto',clarinetto:'Clarinetto',sax:'Sassofono',tromba:'Tromba',voce:'Voce (coro)',organo:'Organo',fisarmonica:'Fisarmonica',marimba:'Marimba',xilofono:'Xilofono',campanelli:'Campanelli',bit:'Videogioco',perc:'Percussioni'};
 const D={longa:16,breve:8,whole:4,half:2,quarter:1,eighth:.5,'16th':.25,'32nd':.125,'64th':.0625,'128th':.03125};
-let actx=null,master,noiseBuf,score=null,speed=1,pps=110,playing=false,pos=0,ctxStart=0,posStart=0,idx=0,vIdx=0,srcs=new Set(),parts=[],parts0=[];
+let recDest=null,actx=null,master,noiseBuf,score=null,speed=1,pps=110,playing=false,pos=0,ctxStart=0,posStart=0,idx=0,vIdx=0,srcs=new Set(),parts=[],parts0=[];
 let fs=16;try{fs=+localStorage.getItem('ss_fs')||16}catch(e){}
 const setFs=()=>{document.documentElement.style.setProperty('--fs',fs+'px');try{localStorage.setItem('ss_fs',fs)}catch(e){}};setFs();
 $('zIn').onclick=()=>{fs=Math.min(26,fs+2);setFs()};$('zOut').onclick=()=>{fs=Math.max(12,fs-2);setFs()};
@@ -390,6 +422,7 @@ function load(d){
  parts.forEach((p,i)=>{p.vol=.8;p.mute=false;p.show=!d.auto||gi.includes(i);p.col=COLORS[i%COLORS.length];p.g=null});
  $('title').textContent=d.title;$('err').textContent='';
  renderParts();upd();renderSheet();
+ if(d.auto&&gi.length===2)askGuitar(gi);
 }
 $('file').onchange=async e=>{
  const f=e.target.files[0];if(!f)return;
@@ -412,7 +445,7 @@ function demo(){
 
 /* ---------- strumenti ---------- */
 function renderParts(){
- $('cvv').textContent=parts.filter(p=>p.show).length+' di '+parts.length;$('caa').textContent=parts.filter(p=>!p.mute).length+' di '+parts.length;
+ $('cvv').textContent=parts.filter(p=>p.show).length+' di '+parts.length;$('caa').textContent=parts.filter(p=>!p.mute).length+' di '+parts.length;$('instn').textContent=parts.filter(p=>p.show).length+' visibili · '+parts.filter(p=>!p.mute).length+' in ascolto';
  $('parts').innerHTML=parts.map((p,i)=>`<div class="part"><span class="dot" style="background:${p.col}"></span><span class="pn">${p.name.replace(/[<&]/g,'')}</span><span class="tg"><button data-m="${i}" class="${p.mute?'':'on'}" aria-pressed="${!p.mute}">Ascolta</button><button data-w="${i}" class="${p.show?'on':''}" aria-pressed="${p.show}">Vedi</button></span>
  <div class="prow"><select data-i="${i}" aria-label="Strumento">${Object.entries(INST).map(([k,v])=>`<option value="${k}"${k===p.inst?' selected':''}>${v}</option>`).join('')}</select>
  <label class="vol">Volume<input type="range" min="0" max="100" value="${p.vol*100}" data-v="${i}"></label></div></div>`).join('');
@@ -429,7 +462,7 @@ $('allb').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=
 function initAudio(){
  if(actx)return;
  actx=new(window.AudioContext||window.webkitAudioContext)();
- const comp=actx.createDynamicsCompressor();comp.connect(actx.destination);
+ const comp=actx.createDynamicsCompressor();comp.connect(actx.destination);recDest=actx.createMediaStreamDestination();comp.connect(recDest);
  master=actx.createGain();master.gain.value=.6;master.connect(comp);
  const cv=actx.createConvolver(),ir=actx.createBuffer(2,actx.sampleRate*2,actx.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)}cv.buffer=ir;const wet=actx.createGain();wet.gain.value=.22;master.connect(cv);cv.connect(wet).connect(comp);
  noiseBuf=actx.createBuffer(1,actx.sampleRate,actx.sampleRate);const c=noiseBuf.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=Math.random()*2-1;
@@ -526,8 +559,9 @@ function renderSheet(){
  const ws=[];for(let mi=0;mi<nM;mi++){let c=0;VS.forEach(st=>{const M=st.ms[mi];if(M)M.voices.forEach(v=>c=Math.max(c,v.length))});ws.push(Math.max(110,60+30*c)*spF)}
  const modW=mi=>45+Math.abs(VS[0].ms[mi].key)*10+(mi===0?30:0);
  const rows=[];let row=[],used=0;
- for(let mi=0;mi<nM;mi++){const w=ws[mi]+(row.length?0:modW(mi));if(row.length&&used+w>LW-20){rows.push(row);row=[];used=0;mi--;continue}row.push(mi);used+=w}
- if(row.length)rows.push(row);
+ if(bpr>0)for(let i=0;i<nM;i+=bpr)rows.push([...Array(Math.min(bpr,nM-i)).keys()].map(k=>i+k));
+ else for(let mi=0;mi<nM;mi++){const w=ws[mi]+(row.length?0:modW(mi));if(row.length&&used+w>LW-20){rows.push(row);row=[];used=0;mi--;continue}row.push(mi);used+=w}
+ if(!bpr&&row.length)rows.push(row);
  const yo=[];let yy=0;VS.forEach((st,si)=>{if(si&&st.pi!==VS[si-1].pi)yy+=34;yo.push(yy);yy+=SH});const X0=S>1?22:10,PN=[];
  const rowH=yy+30,H=top+rows.length*rowH+20;
  const r=new VF.Renderer(host,VF.Renderer.Backends.SVG);r.resize(W,H*sz);const ctx=r.getContext();ctx.scale(sz,sz);
@@ -535,7 +569,7 @@ function renderSheet(){
  const pend={},groups=[];
  rows.forEach((row,ri)=>{
   const base=row.map((mi,ci)=>ws[mi]+(ci?0:modW(mi))),sum=base.reduce((a,b)=>a+b,0);
-  const fill=(ri<rows.length-1||sum>LW*.7)?(LW-X0-10)/sum:1;
+  const fill=bpr>0?(LW-X0-10)*(row.length/bpr)/sum:(ri<rows.length-1||sum>LW*.7)?(LW-X0-10)/sum:1;
   let x=X0;const y0=top+ri*rowH;
   row.forEach((mi,ci)=>{
    const w=base[ci]*fill;
@@ -625,6 +659,7 @@ $('sin').addEventListener('click',e=>{
  let best=B.s,bd=1e9;tl.forEach(n=>{if(n.mi===B.mi&&Math.abs(n.x-x)<bd){bd=Math.abs(n.x-x);best=n.s}});
  seek(best);if(!playing)start();
 });
+let bpr=0;try{bpr=+localStorage.getItem('ss_bpr')||0}catch(e){}
 let spF=1,rgF=1,shH=0;try{spF=+localStorage.getItem('ss_sp')||1;rgF=+localStorage.getItem('ss_rg')||1;shH=+localStorage.getItem('ss_sh')||0}catch(e){}
 const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};let pt;const later=()=>{clearTimeout(pt);pt=setTimeout(renderSheet,150)};
 const syncP=()=>{$('pz').value=Math.round(sz*100);$('pb').value=Math.round(spF*100);$('pr').value=Math.round(rgF*100);$('ph').value=shH||64;$('sheet').style.height=shH?shH+'vh':''};
@@ -638,7 +673,7 @@ $('pz').oninput=e=>{sz=e.target.value/100;sv('ss_sz',sz);later()};
 $('pb').oninput=e=>{spF=e.target.value/100;sv('ss_sp',spF);later()};
 $('pr').oninput=e=>{rgF=e.target.value/100;sv('ss_rg',rgF);later()};
 $('ph').oninput=e=>{shH=+e.target.value;sv('ss_sh',shH);$('sheet').style.height=shH+'vh'};
-syncP();
+syncP();$('bpr').value=String(bpr);$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
 let moved=[];
 function enterFs(){const st=$('stage');if(st.classList.contains('fs'))return;
  moved=['lblw','prop','ctrl','spd'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};$('bar').insertBefore(e,$('fsm'));return r});
@@ -771,14 +806,14 @@ async function expand(u,dep=0){
 }
 function renderLib(){
  const q=($('lq').value||'').toLowerCase();$('libn').textContent=lib.length+(lib.length===1?' brano':' brani');
- $('lib').innerHTML=lib.map((x,i)=>({x,i})).filter(o=>!q||o.x.n.toLowerCase().includes(q)).map(({x,i})=>`<div class="li${i===cur?' cur':''}"><button class="lname" data-l="${i}">${x.n.replace(/[<&]/g,'')}<small>${x.f?'link fisso · ':''}${srcOf(x.u).replace(/[<&]/g,'')}</small></button><button class="lx" data-x="${i}" aria-label="Togli dall'elenco">×</button></div>`).join('')||'<p class="note">Nessun brano. Incolla un link qui sopra e tocca «Aggiungi».</p>';
+ $('lib').innerHTML=lib.map((x,i)=>({x,i})).filter(o=>!q||o.x.n.toLowerCase().includes(q)).map(({x,i})=>`<div class="li${i===cur?' cur':''}"><button class="lname" data-l="${i}">${x.n.replace(/[<&]/g,'')}<small>${x.f?'link fisso · ':''}${srcOf(x.u).replace(/[<&]/g,'')}</small></button><button class="lx" data-x="${i}" aria-label="Togli dall'elenco">×</button></div>`).join('')||'';
 }
 $('ladd').onclick=async()=>{
  const ls=$('links').value.split(/\s+/).filter(Boolean);if(!ls.length)return;
  $('ladd').disabled=true;$('lmsg').textContent='Cerco i brani…';let add=0;const bad=[];
  for(const l of ls){try{const r=await expand(l);if(!r.length)bad.push(l+' (nessuno spartito trovato)');r.forEach(x=>{if(!lib.some(y=>y.u===x.u)){lib.push(x);add++}})}
   catch(e){bad.push(l+' ('+(e instanceof TypeError?'il sito non permette di leggerlo':e.message)+')')}}
- saveLib();renderLib();$('ladd').disabled=false;if(add)$('links').value='';
+ saveLib();renderLib();$('ladd').disabled=false;if(add){$('links').value='';$('libset').open=false;$('libbox').open=true}
  $('lmsg').textContent=(add?'Aggiunti '+add+' brani. ':'Nessun brano nuovo. ')+(bad.length?'Non riesco a leggere: '+bad.join('; '):'');
 };
 $('lclr').onclick=()=>{if($('lclr').dataset.ok){lib=[];cur=-1;saveLib();renderLib();$('lclr').textContent='Svuota elenco';delete $('lclr').dataset.ok;$('lmsg').textContent='Elenco svuotato.'}else{$('lclr').dataset.ok=1;$('lclr').textContent='Tocca ancora per svuotare'}};
@@ -797,15 +832,46 @@ if(!fix)fix=LINK_FISSO;$('lfix').value=fix;
 async function loadFix(show){
  if(!fix)return;if(show)$('lmsg').textContent='Aggiorno i brani dal link fisso…';
  try{const r=await expand(fix);const old=lib.filter(x=>!x.f&&!r.some(y=>y.u===x.u));lib=r.map(x=>({...x,f:1})).concat(old);cur=-1;saveLib();renderLib();
-  $('lmsg').textContent=show?'Link fisso: '+r.length+' brani.':''}
+  $('lmsg').textContent=show?'Link fisso: '+r.length+' brani.':'';if(r.length&&show)$('libset').open=false}
  catch(e){$('lmsg').textContent='Link fisso non raggiungibile ('+(e instanceof TypeError?'il sito non permette di leggerlo o manca internet':e.message)+'). Uso l\'elenco salvato.'}}
 $('lfs').onclick=()=>{fix=$('lfix').value.trim();try{localStorage.setItem('ss_fix',fix)}catch(e){}loadFix(true)};
 $('lfu').onclick=()=>loadFix(true);
 $('lfd').onclick=()=>{fix='';$('lfix').value='';try{localStorage.setItem('ss_fix','')}catch(e){}lib=lib.filter(x=>!x.f);cur=-1;saveLib();renderLib();$('lmsg').textContent='Link fisso tolto.'};
 if(daHub){$('libbox').open=true;loadFix(true);setTimeout(()=>$('libbox').scrollIntoView({behavior:'smooth',block:'start'}),500);try{history.replaceState(null,'',location.pathname)}catch(e){}}else loadFix(false);
-$('limp').onclick=()=>{$('libbox').open=true;$('libbox').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('links').focus(),400)};
-renderLib();
+$('limp').onclick=()=>{$('libbox').open=true;$('libset').open=true;$('libbox').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('links').focus(),400)};
+renderLib();$('libset').open=!lib.length&&!fix;
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.host)&&location.hostname!=='localhost')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+/* ---------- scelta chitarra ---------- */
+function askGuitar(gi){const m=$('gmod');
+ $('gbtn').innerHTML=gi.map((i,k)=>`<button data-g="${i}">Chitarra ${k+1}${parts[i].name.trim().toLowerCase()==='chitarra '+(k+1)?'':'<small>'+parts[i].name.replace(/[<&]/g,'')+'</small>'}</button>`).join('')+'<button data-g="all">Entrambe</button>';
+ m.hidden=false;m.onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;const g=b.dataset.g;gi.forEach(i=>parts[i].show=g==='all'||+g===i);m.hidden=true;renderParts();renderSheet()}}
+/* ---------- registra schermo ---------- */
+{let rec=null,ds=null,chunks=[],t0=0,acc=0,tmr=0,url='';
+ const can=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia&&window.MediaRecorder);
+ const el=()=>acc+(rec&&rec.state==='recording'?Date.now()-t0:0);
+ const tick=()=>{$('rect').textContent=fmt(el()/1000)};
+ $('rec').onclick=()=>{const p=$('recp');p.hidden=!p.hidden;if(!can){$('recmsg').textContent='Su questo dispositivo il browser non permette di registrare lo schermo. Usa il computer (Chrome o Edge) o l\'app per Windows/Mac.';$('recgo').disabled=true}};
+ $('recx').onclick=()=>$('recp').hidden=true;
+ $('recgo').onclick=async()=>{
+  const Q={alta:[1920,1080,8e6],media:[1280,720,4e6],bassa:[854,480,15e5]}[$('recq').value];
+  initAudio();try{actx.resume()}catch(e){}
+  try{ds=await navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:Q[0]},height:{ideal:Q[1]},frameRate:{ideal:30},cursor:'always'},audio:false,preferCurrentTab:true,selfBrowserSurface:'include'})}
+  catch(e){$('recmsg').textContent='Registrazione annullata.';return}
+  const st=new MediaStream([...ds.getVideoTracks(),...recDest.stream.getAudioTracks()]);
+  const mt=['video/mp4;codecs="avc1.42E01F,mp4a.40.2"','video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  try{rec=new MediaRecorder(st,{mimeType:mt||undefined,videoBitsPerSecond:Q[2],audioBitsPerSecond:192000})}catch(e){rec=new MediaRecorder(st)}
+  chunks=[];acc=0;rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+  rec.onstop=()=>{clearInterval(tmr);ds.getTracks().forEach(t=>t.stop());$('recbar').hidden=true;
+   const type=rec.mimeType||mt||'video/webm',ext=/mp4/.test(type)?'mp4':'webm',blob=new Blob(chunks,{type});
+   if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);
+   const nm=('SUONA-'+($('title').textContent||'registrazione')).replace(/[^\w\-àèéìòù ]+/gi,'').trim().replace(/\s+/g,'-').slice(0,60)+'.'+ext;
+   $('recp').hidden=false;$('recmsg').textContent='Registrazione pronta ('+fmt(el()/1000)+', '+(blob.size/1048576).toFixed(1)+' MB).'+(ext==='webm'?' Questo browser non registra in MP4: il video è in WebM e si apre con VLC; con Chrome o Edge aggiornati viene in MP4.':'');
+   $('recout').innerHTML=`<a class="btn open" href="${url}" download="${nm}">Salva video ${ext.toUpperCase()}</a>`;rec=null};
+  ds.getVideoTracks()[0].onended=()=>{if(rec&&rec.state!=='inactive')rec.stop()};
+  rec.start(1000);t0=Date.now();$('recp').hidden=true;$('recout').innerHTML='';$('recbar').hidden=false;$('recbar').classList.remove('paused');$('recpz').textContent='Pausa';tmr=setInterval(tick,250);tick()};
+ $('recpz').onclick=()=>{if(!rec)return;if(rec.state==='recording'){rec.pause();acc+=Date.now()-t0;$('recpz').textContent='Riprendi';$('recbar').classList.add('paused')}else if(rec.state==='paused'){rec.resume();t0=Date.now();$('recpz').textContent='Pausa';$('recbar').classList.remove('paused')}};
+ $('recstop').onclick=()=>{if(rec&&rec.state!=='inactive'){if(rec.state==='recording')acc+=Date.now()-t0,t0=Date.now();rec.stop()}};
+}
 demo();setSpeed(100);frame();
 }
 </script>
