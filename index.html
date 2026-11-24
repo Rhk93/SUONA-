@@ -792,7 +792,7 @@ $('lib').addEventListener('click',async e=>{
 });
 const LINK_FISSO='';
 let fix='';try{fix=localStorage.getItem('ss_fix')||''}catch(e){}
-try{const q=new URLSearchParams(location.search).get('lista');if(q){fix=q;localStorage.setItem('ss_fix',q)}}catch(e){}
+let daHub=false;try{const q=new URLSearchParams(location.search).get('lista');if(q){fix=q.trim();daHub=true;localStorage.setItem('ss_fix',fix)}}catch(e){}
 if(!fix)fix=LINK_FISSO;$('lfix').value=fix;
 async function loadFix(show){
  if(!fix)return;if(show)$('lmsg').textContent='Aggiorno i brani dal link fisso…';
@@ -802,7 +802,7 @@ async function loadFix(show){
 $('lfs').onclick=()=>{fix=$('lfix').value.trim();try{localStorage.setItem('ss_fix',fix)}catch(e){}loadFix(true)};
 $('lfu').onclick=()=>loadFix(true);
 $('lfd').onclick=()=>{fix='';$('lfix').value='';try{localStorage.setItem('ss_fix','')}catch(e){}lib=lib.filter(x=>!x.f);cur=-1;saveLib();renderLib();$('lmsg').textContent='Link fisso tolto.'};
-loadFix(false);
+if(daHub){$('libbox').open=true;loadFix(true);setTimeout(()=>$('libbox').scrollIntoView({behavior:'smooth',block:'start'}),500);try{history.replaceState(null,'',location.pathname)}catch(e){}}else loadFix(false);
 $('limp').onclick=()=>{$('libbox').open=true;$('libbox').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('links').focus(),400)};
 renderLib();
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.host)&&location.hostname!=='localhost')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
