@@ -108,7 +108,7 @@ body[data-t=neon] .fzoom button{box-shadow:0 0 16px #ff2bd6aa}
 textarea,input[type=search],input[type=url]{font:inherit;font-size:16px;width:100%;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;min-height:44px}
 #lib{display:grid;gap:8px;max-height:50vh;overflow:auto}
 .li{display:flex;gap:8px}.li .lname{flex:1;justify-content:flex-start;text-align:left;flex-direction:column;align-items:flex-start;padding:8px 16px;border-radius:16px;gap:0}
-.lname small{font-size:.75rem;opacity:.65;font-weight:500}.li.cur .lname{background:linear-gradient(90deg,var(--teal),var(--acc));color:#fff}
+.lname small{font-size:.75rem;opacity:.65;font-weight:500}.li.sel .lname{background:linear-gradient(90deg,var(--teal),var(--acc));color:#fff}
 .lx{width:44px;padding:0;font-size:1.3rem}
 details.sub{border-top:1px dashed var(--line)}details.sub summary{cursor:pointer;font-weight:600;padding:10px 0;min-height:44px;list-style:none}details.sub summary::after{content:" ▾"}details.sub[open] summary::after{content:" ▴"}details.sub>.libin{padding:0 0 6px}
 #lib:empty{display:none}
@@ -205,7 +205,8 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div>
 <details class="box look" id="look"><summary>Aspetto e proporzioni</summary><div class="tools">
  <label>Pentagramma<select id="sty"><option value="classico">Classico</option><option value="moderno">Moderno</option><option value="fumetto">Fumetto</option><option value="arcobaleno">Arcobaleno</option><option value="cartoon">Cartone animato</option><option value="lavagna">Lavagna</option><option value="neon">Neon</option><option value="quaderno">Quaderno</option><option value="antico">Antico</option><option value="pastello">Pastello</option></select></label>
- <label>Tema<select id="th"><option value="sole">Sole</option><option value="oceano">Oceano</option><option value="bosco">Bosco</option><option value="caramella">Caramella</option><option value="notte">Notte</option><option value="neon">Neon futuristico</option></select></label></div>
+ <label>Tema<select id="th"><option value="sole">Sole</option><option value="oceano">Oceano</option><option value="bosco">Bosco</option><option value="caramella">Caramella</option><option value="notte">Notte</option><option value="neon">Neon futuristico</option></select></label>
+ <label>Faccina che salta<select id="ballo"><option value="1">Mostra</option><option value="0">Nascondi</option></select></label></div>
 <div class="prop" id="prop">
  <label>Grandezza note<input type="range" id="pz" min="50" max="250"></label>
  <label>Larghezza battute<input type="range" id="pb" min="60" max="200"></label>
@@ -662,7 +663,7 @@ $('sin').addEventListener('click',e=>{
  let best=B.s,bd=1e9;tl.forEach(n=>{if(n.mi===B.mi&&Math.abs(n.x-x)<bd){bd=Math.abs(n.x-x);best=n.s}});
  seek(best);if(!playing)start();
 });
-let bpr=0;try{bpr=+localStorage.getItem('ss_bpr')||0}catch(e){}
+let bpr=4,ballOn=true;try{if(localStorage.getItem('ss_v3')!=='1'){localStorage.setItem('ss_bpr','4');localStorage.setItem('ss_v3','1')}const v=localStorage.getItem('ss_bpr');bpr=v===null?4:+v;ballOn=localStorage.getItem('ss_ball')!=='0'}catch(e){}
 let spF=1,rgF=1,shH=0;try{spF=+localStorage.getItem('ss_sp')||1;rgF=+localStorage.getItem('ss_rg')||1;shH=+localStorage.getItem('ss_sh')||0}catch(e){}
 const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};let pt;const later=()=>{clearTimeout(pt);pt=setTimeout(renderSheet,150)};
 const syncP=()=>{$('pz').value=Math.round(sz*100);$('pb').value=Math.round(spF*100);$('pr').value=Math.round(rgF*100);$('ph').value=shH||64;$('sheet').style.height=shH?shH+'vh':''};
@@ -676,7 +677,7 @@ $('pz').oninput=e=>{sz=e.target.value/100;sv('ss_sz',sz);later()};
 $('pb').oninput=e=>{spF=e.target.value/100;sv('ss_sp',spF);later()};
 $('pr').oninput=e=>{rgF=e.target.value/100;sv('ss_rg',rgF);later()};
 $('ph').oninput=e=>{shH=+e.target.value;sv('ss_sh',shH);$('sheet').style.height=shH+'vh'};
-syncP();$('bpr').value=String(bpr);$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
+syncP();$('bpr').value=String(bpr);$('ballo').value=ballOn?'1':'0';$('ball').hidden=!ballOn;$('ballo').onchange=e=>{ballOn=e.target.value==='1';sv('ss_ball',ballOn?'1':'0');$('ball').hidden=!ballOn};$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
 let moved=[];
 function enterFs(){const st=$('stage');if(st.classList.contains('fs'))return;
  moved=['lblw','prop','ctrl','spd','recp','recbar','gmod'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};if(['recp','recbar','gmod'].includes(id))st.appendChild(e);else $('bar').insertBefore(e,$('fsm'));return r});
@@ -810,7 +811,7 @@ async function expand(u,dep=0){
 }
 function renderLib(){
  const q=($('lq').value||'').toLowerCase();$('libn').textContent=lib.length+(lib.length===1?' brano':' brani');
- $('lib').innerHTML=lib.map((x,i)=>({x,i})).filter(o=>!q||o.x.n.toLowerCase().includes(q)).map(({x,i})=>`<div class="li${i===cur?' cur':''}"><button class="lname" data-l="${i}">${x.n.replace(/[<&]/g,'')}<small>${x.f?'link fisso · ':''}${srcOf(x.u).replace(/[<&]/g,'')}</small></button><button class="lx" data-x="${i}" aria-label="Togli dall'elenco">×</button></div>`).join('')||'';
+ $('lib').innerHTML=lib.map((x,i)=>({x,i})).filter(o=>!q||o.x.n.toLowerCase().includes(q)).map(({x,i})=>`<div class="li${i===cur?' sel':''}"><button class="lname" data-l="${i}">${x.n.replace(/[<&]/g,'')}<small>${x.f?'link fisso · ':''}${srcOf(x.u).replace(/[<&]/g,'')}</small></button><button class="lx" data-x="${i}" aria-label="Togli dall'elenco">×</button></div>`).join('')||'';
 }
 $('ladd').onclick=async()=>{
  const ls=$('links').value.split(/\s+/).filter(Boolean);if(!ls.length)return;
@@ -876,11 +877,10 @@ function askGuitar(gi){const m=$('gmod');
   ox.globalAlpha=.25;ox.fillStyle=sun;rr2(X(B.x*sz),Y(B.y*sz),X(B.w*sz),B.h*sz*o,14*o);ox.fill();ox.globalAlpha=1;
   act.forEach(n=>{const L=nbox.get(n);if(!L)return;ox.save();ox.shadowColor=n.c;ox.shadowBlur=16;ox.fillStyle=n.c;ox.globalAlpha=.75;L.forEach(b=>{ox.beginPath();ox.ellipse(X(b[0]+b[2]/2),Y(b[1]+b[3]/2),b[2]*o*.62,b[3]*o*.68,0,0,7);ox.fill()});ox.restore()});
   const cx=X(RS.x*sz);ox.save();ox.shadowColor=acc2;ox.shadowBlur=14;ox.globalAlpha=.6;ox.fillStyle=acc2;rr2(cx-3*o,Y(B.y*sz),6*o,B.h*sz*o,3*o);ox.fill();ox.restore();
-  const by=Y(B.y*sz)-14*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*16*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill();
+  if(ballOn){const by=Y(B.y*sz)-14*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*16*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill()}
   if(!playing&&pos>=score.end-.01&&rec&&rec.state==='recording'&&!stopT)stopT=setTimeout(()=>{stopT=0;$('recstop').onclick()},800);
  }
  $('fzrec').onclick=()=>$('rec').onclick();
- if(!(/Electron/i.test(navigator.userAgent)||(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()))){$('rec').hidden=true;$('fzrec').hidden=true}
  $('rec').onclick=()=>{const p=$('recp');p.hidden=!p.hidden;if(!can){$('recmsg').textContent='Questo browser non permette di registrare video. Usa Chrome, Edge o l\'app.';$('recgo').disabled=true}};
  $('recx').onclick=()=>$('recp').hidden=true;
  $('recgo').onclick=async()=>{
