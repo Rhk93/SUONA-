@@ -67,9 +67,7 @@ a.btn{text-decoration:none}
 .sheet svg{display:block}
 .cur{position:absolute;width:6px;margin-left:-3px;border-radius:6px;background:color-mix(in srgb,var(--acc) 55%,transparent);box-shadow:0 0 14px var(--acc);pointer-events:none;display:none}
 .mbox{position:absolute;border-radius:14px;background:color-mix(in srgb,var(--sun) 25%,transparent);pointer-events:none;display:none}
-.ball{position:absolute;width:22px;height:22px;margin:6px 0 0 -8px;border-radius:50%;background:var(--sun);box-shadow:inset -4px -4px 0 #0002}
-.ball::before,.ball::after{content:"";position:absolute;top:7px;width:4px;height:4px;border-radius:50%;background:#1d2340}
-.ball::before{left:6px}.ball::after{right:6px}
+.ball{position:absolute;width:30px;height:30px;margin:2px 0 0 -12px}
 .msg{padding:24px;text-align:center}
 .sty-classico{background:#fffdf6}
 .sty-classico .lbt{fill:#1d2340}
@@ -219,7 +217,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 <details class="box look" id="look"><summary>Aspetto e proporzioni</summary><div class="tools">
  <label>Pentagramma<select id="sty"><option value="classico">Classico</option><option value="moderno">Moderno</option><option value="fumetto">Fumetto</option><option value="arcobaleno">Arcobaleno</option><option value="cartoon">Cartone animato</option><option value="lavagna">Lavagna</option><option value="neon">Neon</option><option value="quaderno">Quaderno</option><option value="antico">Antico</option><option value="pastello">Pastello</option></select></label>
  <label>Tema<select id="th"><option value="sole">Sole</option><option value="oceano">Oceano</option><option value="bosco">Bosco</option><option value="caramella">Caramella</option><option value="notte">Notte</option><option value="neon">Neon futuristico</option></select></label>
- <label>Faccina che salta<select id="ballo"><option value="1">Mostra</option><option value="0">Nascondi</option></select></label></div>
+ <label>Faccina che salta<select id="ballo"><option value="smile">Sorridente</option><option value="felice">Felice</option><option value="occhiolino">Occhiolino</option><option value="innamorato">Innamorato</option><option value="cool">Con gli occhiali</option><option value="stupito">Stupito</option><option value="stella">Stella</option><option value="cuore">Cuore</option><option value="gatto">Gattino</option><option value="none">Nascondi</option></select></label></div>
 <div class="prop" id="prop">
  <label>Grandezza note<input type="range" id="pz" min="50" max="250"></label>
  <label>Larghezza battute<input type="range" id="pb" min="60" max="200"></label>
@@ -228,7 +226,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <label id="phl">Altezza riquadro<input type="range" id="ph" min="30" max="95"></label>
 </div></details>
 <div class="box brkhint" id="brkhint" hidden><b>A capo manuale</b><span class="note">Scegli quante battute mettere in ogni rigo, oppure tocca una battuta nello spartito per mandarla a capo (la prima di un rigo la riporta su). I righi dopo seguono «Battute per riga».</span><div id="brkrows"></div><div class="pre"><button id="brkok">Fatto</button><button id="brkr">Ripristina</button></div></div>
-<div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><div class="ball" id="ball"></div></div></div></div>
+<div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><canvas class="ball" id="ball" width="56" height="56"></canvas></div></div></div>
 <div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button><button id="fzx" aria-label="Esci dallo schermo intero" title="Esci dallo schermo intero"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"/></svg></button></div>
 <div class="bar" id="bar"><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
 <div class="ctrl" id="ctrl">
@@ -581,6 +579,24 @@ const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60
 
 /* ---------- spartito ---------- */
 let sz=1;try{sz=+localStorage.getItem('ss_sz')||1}catch(e){}
+function drawFace(c,x,y,r,t){const D='#1d2340',Yl='#ffc93c';c.save();c.lineCap='round';c.lineJoin='round';c.lineWidth=Math.max(1,r*.14);
+ const dot=(a,b,q,f)=>{c.fillStyle=f||D;c.beginPath();c.arc(a,b,q,0,7);c.fill()};
+ const heart=(a,b,q,f)=>{c.fillStyle=f;c.beginPath();c.moveTo(a,b+q*.9);c.bezierCurveTo(a-q*1.6,b-q*.2,a-q*.7,b-q*1.4,a,b-q*.45);c.bezierCurveTo(a+q*.7,b-q*1.4,a+q*1.6,b-q*.2,a,b+q*.9);c.fill()};
+ const smile=(w)=>{c.strokeStyle=D;c.beginPath();c.arc(x,y+r*.02,r*(w||.48),.18*Math.PI,.82*Math.PI);c.stroke()};
+ if(t==='stella'){c.fillStyle=Yl;c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?r*.6:r*1.25;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
+ else if(t==='cuore'){heart(x,y+r*.05,r*1.05,'#ff4d6d')}
+ else if(t==='gatto'){c.fillStyle='#ffa94d';c.beginPath();c.moveTo(x-r*.95,y-r*.2);c.lineTo(x-r*.75,y-r*1.15);c.lineTo(x-r*.2,y-r*.8);c.moveTo(x+r*.95,y-r*.2);c.lineTo(x+r*.75,y-r*1.15);c.lineTo(x+r*.2,y-r*.8);c.fill();dot(x,y,r,'#ffa94d')}
+ else{dot(x,y,r,Yl);c.strokeStyle='#e0a10066';c.lineWidth=Math.max(1,r*.08);c.beginPath();c.arc(x,y,r*.96,0,7);c.stroke();c.lineWidth=Math.max(1,r*.14)}
+ const ex=r*.36,ey=y-r*.2,er=r*.13;
+ if(t==='felice'){c.strokeStyle=D;[-1,1].forEach(s=>{c.beginPath();c.arc(x+s*ex,ey+r*.06,r*.14,Math.PI*1.1,Math.PI*1.9);c.stroke()});c.fillStyle='#d62839';c.beginPath();c.arc(x,y+r*.08,r*.46,0,Math.PI);c.closePath();c.fill()}
+ else if(t==='occhiolino'){dot(x-ex,ey,er);c.strokeStyle=D;c.beginPath();c.moveTo(x+ex-r*.14,ey);c.lineTo(x+ex+r*.14,ey);c.stroke();smile()}
+ else if(t==='innamorato'){heart(x-ex,ey,r*.2,'#e63946');heart(x+ex,ey,r*.2,'#e63946');smile()}
+ else if(t==='cool'){c.fillStyle=D;c.beginPath();c.roundRect?c.roundRect(x-ex-r*.26,ey-r*.16,r*.52,r*.32,r*.1):c.rect(x-ex-r*.26,ey-r*.16,r*.52,r*.32);c.roundRect?c.roundRect(x+ex-r*.26,ey-r*.16,r*.52,r*.32,r*.1):c.rect(x+ex-r*.26,ey-r*.16,r*.52,r*.32);c.fill();c.strokeStyle=D;c.beginPath();c.moveTo(x-ex+r*.2,ey-r*.05);c.lineTo(x+ex-r*.2,ey-r*.05);c.stroke();c.beginPath();c.arc(x+r*.08,y+r*.05,r*.36,.2*Math.PI,.7*Math.PI);c.stroke()}
+ else if(t==='stupito'){[-1,1].forEach(s=>{dot(x+s*ex,ey,r*.2,'#fff');dot(x+s*ex,ey,r*.1)});c.strokeStyle=D;c.beginPath();c.arc(x,y+r*.4,r*.16,0,7);c.stroke()}
+ else{dot(x-ex,ey,er);dot(x+ex,ey,er);smile();if(t==='smile'||t==='gatto'){c.globalAlpha=.45;dot(x-r*.6,y+r*.15,r*.14,'#ff6b8a');dot(x+r*.6,y+r*.15,r*.14,'#ff6b8a');c.globalAlpha=1}
+  if(t==='gatto'){c.strokeStyle=D;c.lineWidth=Math.max(1,r*.07);[-1,1].forEach(s=>{c.beginPath();c.moveTo(x+s*r*.3,y+r*.12);c.lineTo(x+s*r*.95,y+r*.02);c.moveTo(x+s*r*.3,y+r*.22);c.lineTo(x+s*r*.95,y+r*.3);c.stroke()})}}
+ c.restore()}
+function paintBall(){const c=$('ball');if(!c)return;const S=30,k=3;c.width=S*k;c.height=S*k;const x=c.getContext('2d');x.scale(k,k);x.clearRect(0,0,S,S);if(face!=='none')drawFace(x,S/2,S/2+1,S*.36,face)}
 let lastRows=[],brkEdit=false,BRK={};try{BRK=JSON.parse(localStorage.getItem('ss_rowc')||'{}')}catch(e){}
 const rowsFor=()=>{const a=score&&BRK[score.otitle];return a&&a.length?a:null};
 const setRows=a=>{BRK[score.otitle]=a;try{localStorage.setItem('ss_rowc',JSON.stringify(BRK))}catch(e){}renderSheet()};
@@ -708,7 +724,7 @@ $('sin').addEventListener('click',e=>{
  let best=B.s,bd=1e9;tl.forEach(n=>{if(n.mi===B.mi&&Math.abs(n.x-x)<bd){bd=Math.abs(n.x-x);best=n.s}});
  seek(l2p(best));if(!playing)start();
 });
-let bpr=4,ballOn=true;try{if(localStorage.getItem('ss_v3')!=='1'){localStorage.setItem('ss_bpr','4');localStorage.setItem('ss_v3','1')}const v=localStorage.getItem('ss_bpr');bpr=v===null?4:+v;ballOn=localStorage.getItem('ss_ball')!=='0'}catch(e){}
+let bpr=4,ballOn=true,face='smile';try{if(localStorage.getItem('ss_v3')!=='1'){localStorage.setItem('ss_bpr','4');localStorage.setItem('ss_v3','1')}const v=localStorage.getItem('ss_bpr');bpr=v===null?4:+v;face=localStorage.getItem('ss_face')||(localStorage.getItem('ss_ball')==='0'?'none':'smile');ballOn=face!=='none'}catch(e){}
 let spF=1,rgF=1,shH=0;try{spF=+localStorage.getItem('ss_sp')||1;rgF=+localStorage.getItem('ss_rg')||1;shH=+localStorage.getItem('ss_sh')||0}catch(e){}
 const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};let pt;const later=()=>{clearTimeout(pt);pt=setTimeout(renderSheet,150)};
 const syncP=()=>{$('pz').value=Math.round(sz*100);$('pb').value=Math.round(spF*100);$('pr').value=Math.round(rgF*100);$('ph').value=shH||64;$('sheet').style.height=shH?shH+'vh':''};
@@ -722,7 +738,7 @@ $('pz').oninput=e=>{sz=e.target.value/100;sv('ss_sz',sz);later()};
 $('pb').oninput=e=>{spF=e.target.value/100;sv('ss_sp',spF);later()};
 $('pr').oninput=e=>{rgF=e.target.value/100;sv('ss_rg',rgF);later()};
 $('ph').oninput=e=>{shH=+e.target.value;sv('ss_sh',shH);$('sheet').style.height=shH+'vh'};
-syncP();$('bpr').value=String(bpr);$('ballo').value=ballOn?'1':'0';$('ball').hidden=!ballOn;$('ballo').onchange=e=>{ballOn=e.target.value==='1';sv('ss_ball',ballOn?'1':'0');$('ball').hidden=!ballOn};$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
+syncP();$('bpr').value=String(bpr);$('ballo').value=face;$('ball').hidden=!ballOn;paintBall();$('ballo').onchange=e=>{face=e.target.value;ballOn=face!=='none';sv('ss_face',face);$('ball').hidden=!ballOn;paintBall()};$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
 let moved=[];
 function enterFs(){const st=$('stage');if(st.classList.contains('fs'))return;
  moved=['lblw','prop','ctrl','spd','recp','recbar','gmod'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};if(['recp','recbar','gmod'].includes(id))st.appendChild(e);else $('bar').insertBefore(e,$('fsm'));return r});
@@ -915,15 +931,15 @@ function askGuitar(gi){const m=$('gmod');
  function draw(){if(!recOn)return;try{draw2()}catch(e){}if(vtr&&vtr.requestFrame)vtr.requestFrame()}
  function draw2(){if(!snap)return;try{if(score)updSheet(p2l(now()))}catch(e){}if(!RS)return;
   const OW=oc.width,OH=oc.height,o=OW/snap.W,B=RS.B,acc2=getComputedStyle(document.body).getPropertyValue('--acc')||'#ff5a5f',sun=getComputedStyle(document.body).getPropertyValue('--sun')||'#ffc93c';
-  const ty=Math.max(-40,Math.min(snap.H-OH/o,B.y*sz-(OH/o)*.12));vy+=(ty-vy)*.12;if(Math.abs(ty-vy)<.5)vy=ty;
+  const ty=B.ri===0?-6:Math.max(-40,Math.min(snap.H-OH/o,B.y*sz-(OH/o)*.12));vy+=(ty-vy)*.12;if(Math.abs(ty-vy)<.5)vy=ty;
   ox.fillStyle=snap.bg;ox.fillRect(0,0,OW,OH);
   {const sy=Math.max(0,vy),dy=(sy-vy)*o;ox.drawImage(snap.c,0,sy*kb,snap.W*kb,(OH/o)*kb,0,dy,OW,OH)}
   const X=v=>v*o,Y=v=>(v-vy)*o;
-  {const ty2=Y(18*sz)+30*sz*o*.95;if(ty2>-40*o){ox.save();ox.fillStyle=getComputedStyle($('sheet')).getPropertyValue('--note')||'#1d2340';ox.font='700 '+Math.round(30*sz*o)+'px Fredoka, "Trebuchet MS", sans-serif';ox.textAlign='center';ox.fillText(score.title||'',OW/2,ty2,OW*.84);ox.restore()}}
+  {const ty2=Y(18*sz)+30*sz*o*.95;if(ty2>-40*o){ox.save();ox.fillStyle=getComputedStyle($('stitle')).color||'#1d2340';ox.font='700 '+Math.round(30*sz*o)+'px Fredoka, "Trebuchet MS", sans-serif';ox.textAlign='center';ox.fillText(score.title||'',OW/2,ty2,OW*.84);ox.restore()}}
   ox.globalAlpha=.25;ox.fillStyle=sun;rr2(X(B.x*sz),Y(B.y*sz),X(B.w*sz),B.h*sz*o,14*o);ox.fill();ox.globalAlpha=1;
   act.forEach(n=>{const L=nbox.get(n);if(!L)return;ox.save();ox.shadowColor=n.c;ox.shadowBlur=16;ox.fillStyle=n.c;ox.globalAlpha=.75;L.forEach(b=>{ox.beginPath();ox.ellipse(X(b[0]+b[2]/2),Y(b[1]+b[3]/2),b[2]*o*.62,b[3]*o*.68,0,0,7);ox.fill()});ox.restore()});
   const cx=X(RS.x*sz);ox.save();ox.shadowColor=acc2;ox.shadowBlur=14;ox.globalAlpha=.6;ox.fillStyle=acc2;rr2(cx-3*o,Y(B.y*sz),6*o,B.h*sz*o,3*o);ox.fill();ox.restore();
-  if(ballOn){const by=Y(B.y*sz)+17*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*12*o:0);ox.fillStyle=sun;ox.beginPath();ox.arc(cx,by,11*o,0,7);ox.fill();ox.fillStyle='#1d2340';ox.beginPath();ox.arc(cx-4*o,by-2*o,2*o,0,7);ox.arc(cx+4*o,by-2*o,2*o,0,7);ox.fill()}
+  if(ballOn){const by=Y(B.y*sz)+17*o-(playing?Math.abs(Math.sin(RS.ph*Math.PI))*12*o:0);drawFace(ox,cx,by,12*o,face)}
   if(!playing&&pos>=score.end-.01&&rec&&rec.state==='recording'&&!stopT)stopT=setTimeout(()=>{stopT=0;$('recstop').onclick()},800);
  }
  $('fzrec').onclick=()=>$('rec').onclick();
@@ -933,7 +949,7 @@ function askGuitar(gi){const m=$('gmod');
   if(!boxes.length){$('recmsg').textContent='Prima deve comparire lo spartito (serve internet per disegnarlo).';return}
   const Q={alta:[1920,1080,8e6],media:[1280,720,4e6],bassa:[854,480,15e5]}[$('recq').value];
   initAudio();try{actx.resume()}catch(e){}
-  oc=document.createElement('canvas');oc.width=Q[0];oc.height=Q[1];ox=oc.getContext('2d');snap=null;vy=0;
+  oc=document.createElement('canvas');oc.width=Q[0];oc.height=Q[1];ox=oc.getContext('2d');snap=null;vy=-6;
   $('recmsg').textContent='Preparo lo spartito…';await snapBuild();
   if(!snap){$('recmsg').textContent='Non riesco a preparare lo spartito per il video.';return}
   const vs=oc.captureStream(0);vtr=vs.getVideoTracks()[0];if(!vtr.requestFrame){vtr.stop();vtr=oc.captureStream(30).getVideoTracks()[0]}
