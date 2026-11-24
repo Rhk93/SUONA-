@@ -58,7 +58,10 @@ a.btn{text-decoration:none}
 #stage.fs .prop{margin:0;flex:1 1 100%}
 #stage.fs #phl{display:none}
 #stage.fs #lblw{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600;flex:1 1 180px}
-.bar.min #prop,.bar.min #spd{display:none}
+.bar.min #fsset,.bar.min #spd{display:none}
+.fsset{flex:1 1 100%;order:3}.fsset summary{cursor:pointer;font-weight:600;padding:6px 4px;list-style:none}.fsset summary::after{content:" ▾"}.fsset[open] summary::after{content:" ▴"}
+#fssetin{display:flex;flex-wrap:wrap;gap:10px;padding:4px 0}
+#stage.fs #fsm,#stage.fs #fsx{order:2}
 .sheet{position:relative;height:clamp(320px,64vh,720px);overflow:auto;border-radius:24px;background:var(--paper);box-shadow:0 6px 0 var(--line);border:3px solid var(--sun)}
 .sheet .in{position:relative;margin:0 auto}
 .stitle{position:absolute;left:8%;right:8%;top:14px;text-align:center;font-weight:700;line-height:1.15;color:var(--note);outline:none;border-radius:12px;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text}
@@ -228,7 +231,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 <div class="box brkhint" id="brkhint" hidden><b>A capo manuale</b><span class="note">Scegli quante battute mettere in ogni rigo, oppure tocca una battuta nello spartito per mandarla a capo (la prima di un rigo la riporta su). I righi dopo seguono «Battute per riga».</span><div id="brkrows"></div><div class="pre"><button id="brkok">Fatto</button><button id="brkr">Ripristina</button></div></div>
 <div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><canvas class="ball" id="ball" width="56" height="56"></canvas></div></div></div>
 <div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button><button id="fzx" aria-label="Esci dallo schermo intero" title="Esci dallo schermo intero"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"/></svg></button></div>
-<div class="bar" id="bar"><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
+<div class="bar" id="bar"><details class="fsset" id="fsset"><summary>Impostazioni</summary><div id="fssetin"></div></details><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
 <div class="ctrl" id="ctrl">
  <button class="play" id="play" aria-label="Suona">▶</button>
  <button id="stop" aria-label="Dall'inizio">⏮</button>
@@ -741,7 +744,7 @@ $('ph').oninput=e=>{shH=+e.target.value;sv('ss_sh',shH);$('sheet').style.height=
 syncP();$('bpr').value=String(bpr);$('ballo').value=face;$('ball').hidden=!ballOn;paintBall();$('ballo').onchange=e=>{face=e.target.value;ballOn=face!=='none';sv('ss_face',face);$('ball').hidden=!ballOn;paintBall()};$('bpr').onchange=e=>{bpr=+e.target.value;sv('ss_bpr',bpr);renderSheet()};
 let moved=[];
 function enterFs(){const st=$('stage');if(st.classList.contains('fs'))return;
- moved=['lblw','prop','ctrl','spd','recp','recbar','gmod'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};if(['recp','recbar','gmod'].includes(id))st.appendChild(e);else $('bar').insertBefore(e,$('fsm'));return r});
+ moved=['ctrl','spd','lblw','prop','recp','recbar','gmod'].map(id=>{const e=$(id),r={e,p:e.parentNode,n:e.nextSibling};if(['recp','recbar','gmod'].includes(id))st.appendChild(e);else if(id==='lblw'||id==='prop')$('fssetin').appendChild(e);else $('bar').insertBefore(e,$('fsset'));return r});$('fsset').open=false;
  st.classList.add('fs');document.body.style.overflow='hidden';
  try{const r=st.requestFullscreen?st.requestFullscreen():st.webkitRequestFullscreen?.();if(r&&r.catch)r.catch(()=>{})}catch(e){}
  setTimeout(renderSheet,350)}
