@@ -193,6 +193,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <div class="note" id="recmsg">Registra solo lo spartito che scorre, con le note che si illuminano e l'audio dell'app (non il microfono). La musica parte da sola e la registrazione si ferma a fine brano.</div>
  <div id="recout"></div>
 </div>
+<div class="box recp" id="expp" hidden><b>Esporta lo spartito</b><span class="note">Viene esportato così come lo vedi: titolo, scritte sotto le note, a capo e righi visibili.</span><div class="pre"><button class="open" id="exppdf">PDF</button><button class="open" id="expms">MuseScore (.mscz)</button><button id="expx">Chiudi</button></div><div class="note" id="expmsg"></div></div>
 <div class="recbar" id="recbar" hidden><span class="rdot"></span><span id="rect">0:00</span><button id="recpz">Pausa</button><button id="recstop">Stop</button></div>
 <div class="modal" id="gmod" hidden><div class="mcard"><h3>Quale chitarra vuoi vedere?</h3><div id="gbtn"></div><p class="note">Le altre parti restano nascoste ma si sentono. Puoi cambiare da «Strumenti».</p></div></div>
 <div class="info">
@@ -215,7 +216,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div></details>
 <div class="tools">
  <label id="lblw">Scritte sotto<select id="lbl"><option value="none">Nessuna</option><option value="note">Nomi delle note</option><option value="mix">Accordi e note</option><option value="chord">Solo accordi</option></select></label>
- <div class="zs"><button id="brk" aria-pressed="false">A capo</button><button id="fsb">Schermo intero</button><button id="sOut" aria-label="Spartito più piccolo">−</button><button id="sIn" aria-label="Spartito più grande">+</button></div>
+ <div class="zs"><button id="exp">Esporta</button><button id="brk" aria-pressed="false">A capo</button><button id="fsb">Schermo intero</button><button id="sOut" aria-label="Spartito più piccolo">−</button><button id="sIn" aria-label="Spartito più grande">+</button></div>
 </div>
 <details class="box look" id="look"><summary>Aspetto e proporzioni</summary><div class="tools">
  <label>Pentagramma<select id="sty"><option value="classico">Classico</option><option value="moderno">Moderno</option><option value="fumetto">Fumetto</option><option value="arcobaleno">Arcobaleno</option><option value="cartoon">Cartone animato</option><option value="lavagna">Lavagna</option><option value="neon">Neon</option><option value="quaderno">Quaderno</option><option value="antico">Antico</option><option value="pastello">Pastello</option></select></label>
@@ -328,7 +329,7 @@ function parseMXL(xml,fname){
       const tm=c.querySelector('time-modification');let tp=null;
       if(tm){if(c.querySelector('notations tuplet[type="start"]')||!tup[vk])tup[vk]={n:+kt(tm,'actual-notes')||3,o:+kt(tm,'normal-notes')||2};tp=tup[vk];if(c.querySelector('notations tuplet[type="stop"]'))tup[vk]=null}
       const full=!!rest&&(rest.getAttribute('measure')==='yes'||!kt(c,'type'));
-      it={s:mStart+cur,e:mStart+cur+d,dt:VD[kt(c,'type')]||(full?'w':'q'),dots:kids(c,'dot').length,full,tup:tp,notes:[]};
+      it={s:mStart+cur,e:mStart+cur+d,dt:VD[kt(c,'type')]||(full?'w':'q'),dots:kids(c,'dot').length,full,tup:tp,notes:[],xml:c};
       (M.voices[v]||(M.voices[v]=[])).push(it);last[vk]=it;cur+=d;maxp=Math.max(maxp,cur);
      }
      if(pitch||un){
@@ -346,7 +347,7 @@ function parseMXL(xml,fname){
   ps.push({name:nm,inst:guess(nm,drum,inf.prog?+inf.prog-1:null),tc:0,drum});staves.push(...sts);
  });
  const title=(doc.querySelector('work > work-title')?.textContent||doc.querySelector('movement-title')?.textContent||'').trim()||fname.replace(/\.\w+$/,'');
- return{title,parts:ps,ev,tempos,meas,staves,reps,voltas};
+ return{title,parts:ps,ev,tempos,meas,staves,reps,voltas,doc,kind:'mxl',mm:kids(kids(root,'part')[0]||root,'measure')};
 }
 function guess(name,drum,pr){
  const n=name.toLowerCase();if(drum)return'perc';
@@ -406,7 +407,7 @@ function parse(xml,fname){
       const dt=kt(c,'durationType'),dots=+kt(c,'dots')||0;let d,full=false,tup=null;
       if(dt==='measure'){const du=kt(c,'duration');d=du?frac(du)*4:mlen;full=true}
       else{d=(D[dt]||1)*(2-1/2**dots);tst.forEach(o=>d*=o.r);tup=tst[tst.length-1]||null;const tr=kt(c,'Tuplet');if(tr&&tupMap[tr]){d*=tupMap[tr].r;tup=tupMap[tr]}}
-      const s=mStart+cur,it={s,e:s+d,dt:VD[dt]||'q',dots,full,tup,notes:[]};
+      const s=mStart+cur,it={s,e:s+d,dt:VD[dt]||'q',dots,full,tup,notes:[],xml:c};
       if(t==='Chord')kids(c,'Note').forEach(n=>{
        const p=+kt(n,'pitch');if(!p)return;
        const fw=!!n.querySelector('Spanner[type="Tie"] > next')||kids(n,'Tie').length>0;
@@ -425,7 +426,7 @@ function parse(xml,fname){
   staves.push({pi,ms});
  });
  const title=(doc.querySelector('metaTag[name="workTitle"]')?.textContent||'').trim()||fname.replace(/\.\w+$/,'');
- return{title,parts:ps,ev,tempos,meas,staves,reps,voltas};
+ return{title,parts:ps,ev,tempos,meas,staves,reps,voltas,doc,kind:'mscx',mm:kids(kids(sc,'Staff')[0]||sc,'Measure')};
 }
 
 /* ---------- caricamento ---------- */
@@ -457,6 +458,7 @@ function load(d){
  const gi=parts.map((p,i)=>i).filter(i=>['chitarra','chitelet'].includes(parts[i].inst)||/guit|chitar/i.test(parts[i].name)).slice(0,2);if(!gi.length)gi.push(0);
  parts.forEach((p,i)=>{p.vol=.8;p.mute=false;p.show=!d.auto||gi.includes(i);p.col=COLORS[i%COLORS.length];p.g=null});
  let CT={};try{CT=JSON.parse(localStorage.getItem('ss_tit')||'{}')}catch(e){}score.otitle=d.title;score.title=CT[d.title]||d.title;$('title').textContent=score.title;$('stitle').textContent=score.title;$('err').textContent='';
+ score.doc=d.doc;score.kind=d.kind;score.mm=d.mm;
  renderParts();upd();renderSheet();
  if(d.auto&&gi.length===2)askGuitar(gi);
 }
@@ -608,7 +610,7 @@ const RK={treble:'b/4',bass:'d/3',alto:'c/4',tenor:'a/3',percussion:'b/4'};
 const KN=['Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#','C#'];
 const lb=(a,t)=>{let x=0,y=a.length;while(x<y){const m=(x+y)>>1;if(a[m].s<t)x=m+1;else y=m}return x};
 function renderSheet(){
- const host=$('svg');$('stitle').hidden=true;tl=[];boxes=[];act.clear();lastRow=-1;$('cur').style.display=$('mbox').style.display='none';
+ const host=$('svg');$('stitle').hidden=true;if(score)score.lab=[];tl=[];boxes=[];act.clear();lastRow=-1;$('cur').style.display=$('mbox').style.display='none';
  if(!score)return;
  if(!window.Vex||!Vex.Flow){host.innerHTML='<div class="msg">Per disegnare lo spartito serve la connessione a internet. La musica funziona lo stesso.</div>';return}
  const VS=score.staves.filter(st=>(parts[st.pi]||{}).show!==false);
@@ -784,8 +786,9 @@ function drawLabels(svg,groups){
   let y=g.y;
   if(lblMode!=='note'&&ch&&(pcs>=2)){
    const w=ch.length*8.5+16;svgEl(svg,'rect',{x:g.x-w/2,y:y-16,width:w,height:23,rx:11.5,class:'chp'});
-   svgEl(svg,'text',{x:g.x,y:y,class:'cht','text-anchor':'middle'},ch);return}
+   svgEl(svg,'text',{x:g.x,y:y,class:'cht','text-anchor':'middle'},ch);score.lab.push({it:g.its[0],lines:[ch]});return}
   if(lblMode==='chord')return;
+  score.lab.push({it:g.its[0],lines:ns.slice().sort((a,b)=>b.p-a.p).slice(0,4).map(q=>itn(q.k))});
   ns.sort((a,b)=>b.p-a.p).slice(0,4).forEach(q=>{
    const t=svgEl(svg,'text',{x:g.x,y,class:'lbt','text-anchor':'middle'},itn(q.k));
    if(COLSTY.includes(sty))t.style.fill=RB[q.k[0]];y+=15});
@@ -999,6 +1002,84 @@ const setBrk=v=>{brkEdit=v;if(v)setTimeout(renderSheet,0);$('brk').setAttribute(
 $('brk').onclick=()=>setBrk(!brkEdit);$('brkok').onclick=()=>setBrk(false);
 $('brkr').onclick=()=>{if(score){delete BRK[score.otitle];try{localStorage.setItem('ss_rowc',JSON.stringify(BRK))}catch(e){}renderSheet()}};
 $('brkrows').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||!score)return;const r=+b.dataset.r,d=+b.dataset.d,C=lastRows.map(R=>R.length),v=Math.max(1,C[r]+d);setRows([...C.slice(0,r),v])};
+/* ---------- esporta ---------- */
+{const enc=new TextEncoder();
+ const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;t[n]=c>>>0}return d=>{let c=0xffffffff;for(let i=0;i<d.length;i++)c=t[(c^d[i])&255]^(c>>>8);return(c^0xffffffff)>>>0}})();
+ function zipStore(files){const parts=[],cen=[];let off=0;
+  const u16=v=>[v&255,(v>>8)&255],u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  files.forEach(f=>{const nm=enc.encode(f.name),crc=CRC(f.data),sz=f.data.length;
+   const lh=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0)]);
+   parts.push(lh,nm,f.data);
+   cen.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nm);
+   off+=lh.length+nm.length+sz});
+  const cs=cen.reduce((a,b)=>a+b.length,0);
+  return new Blob([...parts,...cen,new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cs),...u32(off),...u16(0)])],{type:'application/zip'})}
+ function exportScoreFile(){
+  const doc=score.doc,mx=score.kind==='mxl',added=[],undo=[];
+  const mk=(tag,txt)=>{const e=doc.createElement(tag);if(txt!=null)e.textContent=txt;return e};
+  (score.lab||[]).forEach(L=>{const el=L.it&&L.it.xml;if(!el||!el.parentNode)return;
+   L.lines.forEach((t,i)=>{let ly;
+    if(mx){ly=mk('lyric');ly.setAttribute('number',String(i+1));ly.appendChild(mk('syllabic','single'));ly.appendChild(mk('text',t));el.appendChild(ly)}
+    else{ly=mk('Lyrics');if(i)ly.appendChild(mk('no',String(i)));ly.appendChild(mk('text',t));el.insertBefore(ly,kids(el,'Note')[0]||null)}
+    added.push(ly)})});
+  const mm=score.mm||[],starts=new Set(lastRows.slice(1).map(r=>r[0]));
+  if(mx){mm.forEach((m,i)=>{const p=kids(m,'print')[0];if(p){const o=p.getAttribute('new-system');undo.push(()=>{o==null?p.removeAttribute('new-system'):p.setAttribute('new-system',o)});if(starts.has(i))p.setAttribute('new-system','yes');else p.removeAttribute('new-system')}
+    else if(starts.has(i)){const q=mk('print');q.setAttribute('new-system','yes');m.insertBefore(q,m.firstChild);added.push(q)}})}
+  else{mm.forEach((m,i)=>{kids(m,'LayoutBreak').forEach(b=>{if(kt(b,'subtype')==='line'){const nx=b.nextSibling;m.removeChild(b);undo.push(()=>m.insertBefore(b,nx))}});
+    if(starts.has(i+1)){const b=mk('LayoutBreak');b.appendChild(mk('subtype','line'));m.insertBefore(b,m.firstChild);added.push(b)}})}
+  const setT=(el,t)=>{if(!el)return;const o=el.textContent;undo.push(()=>el.textContent=o);el.textContent=t};
+  if(score.title!==score.otitle){
+   if(mx){let w=doc.querySelector('work > work-title');if(!w){const wk=doc.querySelector('work')||mk('work');w=mk('work-title');wk.appendChild(w);if(!wk.parentNode){const r=doc.querySelector('score-partwise');r.insertBefore(wk,r.firstChild);added.push(wk)}else added.push(w)}setT(w,score.title);setT(doc.querySelector('movement-title'),score.title)}
+   else{setT(doc.querySelector('metaTag[name="workTitle"]'),score.title);doc.querySelectorAll('VBox > Text').forEach(t=>{if(/^title$/i.test(kt(t,'style')))setT(kids(t,'text')[0],score.title)})}}
+  let xml=new XMLSerializer().serializeToString(doc);if(!/^<\?xml/.test(xml))xml='<?xml version="1.0" encoding="UTF-8"?>\n'+xml;
+  added.forEach(e=>e.parentNode&&e.parentNode.removeChild(e));undo.reverse().forEach(f=>f());
+  const base=(score.title||'spartito').replace(/[^\w\-àèéìòù ]+/gi,'').trim().replace(/\s+/g,'-').slice(0,60)||'spartito';
+  if(mx)return{blob:new Blob([xml],{type:'application/vnd.recordare.musicxml+xml'}),nm:base+'.musicxml'};
+  const sc=enc.encode(xml),ct=enc.encode('<?xml version="1.0" encoding="UTF-8"?>\n<container><rootfiles><rootfile full-path="'+base+'.mscx"/></rootfiles></container>');
+  return{blob:zipStore([{name:'META-INF/container.xml',data:ct},{name:base+'.mscx',data:sc}]),nm:base+'.mscz'}}
+ async function exportPdf(){
+  const sv=$('svg').querySelector('svg');if(!sv)throw new Error('lo spartito non è disegnato');
+  act.forEach(n=>n.el&&n.el.classList.remove('on'));act=new Set();
+  const PROPS=['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','font-family','font-size','font-weight','visibility','display','stroke-linecap','stroke-linejoin'];
+  const cl=sv.cloneNode(true),A=[sv,...sv.querySelectorAll('*')],B=[cl,...cl.querySelectorAll('*')];
+  A.forEach((e,i)=>{const cs=getComputedStyle(e);B[i].setAttribute('style',PROPS.map(p=>p+':'+cs.getPropertyValue(p)).join(';'))});
+  cl.setAttribute('xmlns','http://www.w3.org/2000/svg');const W=sv.clientWidth,H=sv.clientHeight;cl.setAttribute('width',W);cl.setAttribute('height',H);
+  const img=await new Promise((ok,ko)=>{const im=new Image(),u=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(cl)],{type:'image/svg+xml'}));im.onload=()=>ok(im);im.onerror=()=>ko(new Error('immagine non creata'));im.src=u});
+  const bg=getComputedStyle($('sheet')).backgroundColor||'rgb(255,255,255)',tc=getComputedStyle($('stitle')).color||'#1d2340';
+  const cuts=[0];const ry={};boxes.forEach(b=>{ry[b.ri]=Math.min(ry[b.ri]??1e9,b.y*sz)});Object.keys(ry).map(Number).sort((a,b)=>a-b).forEach(r=>{if(r>0)cuts.push(Math.max(0,ry[r]-6*sz))});cuts.push(H);
+  const M=28,CW=595-2*M,CH=842-2*M,pp=CW/W,maxH=CH/pp,pages=[];let st=0;
+  for(let i=1;i<cuts.length;i++){if(cuts[i]-st>maxH&&cuts[i-1]>st){pages.push([st,cuts[i-1]]);st=cuts[i-1]}while(cuts[i]-st>maxH){pages.push([st,st+maxH]);st+=maxH}}
+  if(H-st>1)pages.push([st,H]);
+  const K=Math.min(3,2400/W),jp=pages.map(([a,b],pi)=>{const c=document.createElement('canvas');c.width=Math.round(W*K);c.height=Math.round((b-a)*K);const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);
+   x.drawImage(img,0,a,W,b-a,0,0,c.width,c.height);
+   if(pi===0&&score.title){x.fillStyle=tc;x.font='700 '+Math.round(30*sz*K)+'px Fredoka, "Trebuchet MS", sans-serif';x.textAlign='center';x.fillText(score.title,c.width/2,(18+30*.95)*sz*K,c.width*.84)}
+   const d=atob(c.toDataURL('image/jpeg',.92).split(',')[1]),u=new Uint8Array(d.length);for(let k=0;k<d.length;k++)u[k]=d.charCodeAt(k);return{u,w:c.width,h:c.height,dh:(b-a)*pp}});
+  const rgb=(bg.match(/[\d.]+/g)||[255,255,255]).slice(0,3).map(v=>(+v/255).toFixed(3)).join(' ');
+  const parts=[];let len=0;const offs=[],add=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);len+=b.length};
+  const N=jp.length,obj=(n,f)=>{offs[n]=len;add(n+' 0 obj\n');f();add('\nendobj\n')};
+  add('%PDF-1.4\n');obj(1,()=>add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2,()=>add('<< /Type /Pages /Kids ['+jp.map((_,i)=>(3+3*i)+' 0 R').join(' ')+'] /Count '+N+' >>'));
+  jp.forEach((p,i)=>{const pg=3+3*i,ct=4+3*i,im=5+3*i,cs=rgb+' rg 0 0 595 842 re f q '+CW+' 0 0 '+p.dh.toFixed(2)+' '+M+' '+(842-M-p.dh).toFixed(2)+' cm /Im0 Do Q';
+   obj(pg,()=>add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 '+im+' 0 R >> >> /Contents '+ct+' 0 R >>'));
+   obj(ct,()=>add('<< /Length '+cs.length+' >>\nstream\n'+cs+'\nendstream'));
+   obj(im,()=>{add('<< /Type /XObject /Subtype /Image /Width '+p.w+' /Height '+p.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+p.u.length+' >>\nstream\n');add(p.u);add('\nendstream')})});
+  const xr=len,tot=2+3*N;add('xref\n0 '+(tot+1)+'\n0000000000 65535 f \n');for(let n=1;n<=tot;n++)add(String(offs[n]).padStart(10,'0')+' 00000 n \n');
+  add('trailer\n<< /Size '+(tot+1)+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
+  const base=(score.title||'spartito').replace(/[^\w\-àèéìòù ]+/gi,'').trim().replace(/\s+/g,'-').slice(0,60)||'spartito';
+  return{blob:new Blob(parts,{type:'application/pdf'}),nm:base+'.pdf'}}
+ async function saveBlob(blob,nm){const msg=$('expmsg'),ext=nm.split('.').pop();
+  if(window.showSaveFilePicker){try{const h=await showSaveFilePicker({suggestedName:nm,types:[{description:ext.toUpperCase(),accept:{[blob.type||'application/octet-stream']:['.'+ext]}}]});const w=await h.createWritable();await w.write(blob);await w.close();msg.textContent='Salvato: '+h.name;return}catch(e){if(e&&e.name==='AbortError')return}}
+  const C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Filesystem){const FS=C.Plugins.Filesystem,path='SUONA/'+nm;
+   const b64=await new Promise((ok,ko)=>{const f=new FileReader();f.onload=()=>ok(String(f.result).split(',')[1]||'');f.onerror=ko;f.readAsDataURL(blob)});let dir='DOCUMENTS';
+   try{await FS.writeFile({path,data:b64,directory:dir,recursive:true})}catch(e){dir='CACHE';await FS.writeFile({path,data:b64,directory:dir,recursive:true})}
+   msg.textContent=dir==='DOCUMENTS'?'Salvato in Documenti › SUONA › '+nm:'Scegli dove salvarlo dal menu Condividi.';
+   try{const u=await FS.getUri({path,directory:dir});if(C.Plugins.Share)await C.Plugins.Share.share({title:nm,files:[u.uri]})}catch(e){}return}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);msg.textContent='Salvato nella cartella Download: '+nm}
+ $('exp').onclick=()=>{$('expp').hidden=!$('expp').hidden;if(score)$('expms').textContent=score.kind==='mxl'?'MusicXML (.musicxml)':'MuseScore (.mscz)';$('expmsg').textContent=''};
+ $('expx').onclick=()=>$('expp').hidden=true;
+ $('exppdf').onclick=async()=>{if(!score)return;$('expmsg').textContent='Preparo il PDF…';try{const r=await exportPdf();await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il PDF: '+(e.message||e)}};
+ $('expms').onclick=async()=>{if(!score||!score.doc)return;$('expmsg').textContent='Preparo il file…';try{const r=exportScoreFile();await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il file: '+(e.message||e)}};
+}
 demo();setSpeed(100);frame();
 }
 </script>
