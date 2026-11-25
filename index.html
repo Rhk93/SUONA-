@@ -193,7 +193,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
  <div class="note" id="recmsg">Registra solo lo spartito che scorre, con le note che si illuminano e l'audio dell'app (non il microfono). La musica parte da sola e la registrazione si ferma a fine brano.</div>
  <div id="recout"></div>
 </div>
-<div class="box recp" id="expp" hidden><b>Esporta lo spartito</b><span class="note">Viene esportato così come lo vedi: titolo, scritte sotto le note, a capo e righi visibili.</span><div class="pre"><button class="open" id="exppdf">PDF</button><button class="open" id="expms">MuseScore (.mscz)</button><button id="expx">Chiudi</button></div><div class="note" id="expmsg"></div></div>
+<div class="box recp" id="expp" hidden><b>Esporta lo spartito</b><span class="note">Viene esportato così come lo vedi: titolo, scritte sotto le note, a capo e righi visibili.</span><label class="fixl">Qualità del PDF<select id="expq"><option value="leggera" selected>Leggera (file piccolo)</option><option value="normale">Normale</option><option value="alta">Alta (per stampa)</option></select></label><div class="pre"><button class="open" id="exppdf">PDF</button><button class="open" id="expms">MuseScore (.mscz)</button><button id="expx">Chiudi</button></div><div class="note" id="expmsg"></div></div>
 <div class="recbar" id="recbar" hidden><span class="rdot"></span><span id="rect">0:00</span><button id="recpz">Pausa</button><button id="recstop">Stop</button></div>
 <div class="modal" id="gmod" hidden><div class="mcard"><h3>Quale chitarra vuoi vedere?</h3><div id="gbtn"></div><p class="note">Le altre parti restano nascoste ma si sentono. Puoi cambiare da «Strumenti».</p></div></div>
 <div class="info">
@@ -1050,10 +1050,10 @@ $('brkrows').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||!score)retu
   const M=28,CW=595-2*M,CH=842-2*M,pp=CW/W,maxH=CH/pp,pages=[];let st=0;
   for(let i=1;i<cuts.length;i++){if(cuts[i]-st>maxH&&cuts[i-1]>st){pages.push([st,cuts[i-1]]);st=cuts[i-1]}while(cuts[i]-st>maxH){pages.push([st,st+maxH]);st+=maxH}}
   if(H-st>1)pages.push([st,H]);
-  const K=Math.min(3,2400/W),jp=pages.map(([a,b],pi)=>{const c=document.createElement('canvas');c.width=Math.round(W*K);c.height=Math.round((b-a)*K);const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);
+  const Q={leggera:[1000,.6],normale:[1450,.72],alta:[2200,.85]}[$('expq').value]||[1000,.6],K=Math.min(3,Q[0]/W),jp=pages.map(([a,b],pi)=>{const c=document.createElement('canvas');c.width=Math.round(W*K);c.height=Math.round((b-a)*K);const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);
    x.drawImage(img,0,a,W,b-a,0,0,c.width,c.height);
    if(pi===0&&score.title){x.fillStyle=tc;x.font='700 '+Math.round(30*sz*K)+'px Fredoka, "Trebuchet MS", sans-serif';x.textAlign='center';x.fillText(score.title,c.width/2,(18+30*.95)*sz*K,c.width*.84)}
-   const d=atob(c.toDataURL('image/jpeg',.92).split(',')[1]),u=new Uint8Array(d.length);for(let k=0;k<d.length;k++)u[k]=d.charCodeAt(k);return{u,w:c.width,h:c.height,dh:(b-a)*pp}});
+   const d=atob(c.toDataURL('image/jpeg',Q[1]).split(',')[1]),u=new Uint8Array(d.length);for(let k=0;k<d.length;k++)u[k]=d.charCodeAt(k);return{u,w:c.width,h:c.height,dh:(b-a)*pp}});
   const rgb=(bg.match(/[\d.]+/g)||[255,255,255]).slice(0,3).map(v=>(+v/255).toFixed(3)).join(' ');
   const parts=[];let len=0;const offs=[],add=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);len+=b.length};
   const N=jp.length,obj=(n,f)=>{offs[n]=len;add(n+' 0 obj\n');f();add('\nendobj\n')};
@@ -1077,7 +1077,7 @@ $('brkrows').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||!score)retu
   const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);msg.textContent='Salvato nella cartella Download: '+nm}
  $('exp').onclick=()=>{$('expp').hidden=!$('expp').hidden;if(score)$('expms').textContent=score.kind==='mxl'?'MusicXML (.musicxml)':'MuseScore (.mscz)';$('expmsg').textContent=''};
  $('expx').onclick=()=>$('expp').hidden=true;
- $('exppdf').onclick=async()=>{if(!score)return;$('expmsg').textContent='Preparo il PDF…';try{const r=await exportPdf();await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il PDF: '+(e.message||e)}};
+ $('exppdf').onclick=async()=>{if(!score)return;$('expmsg').textContent='Preparo il PDF…';try{const r=await exportPdf();$('expmsg').textContent='PDF pronto ('+(r.blob.size/1024<1024?Math.round(r.blob.size/1024)+' KB':(r.blob.size/1048576).toFixed(1)+' MB')+')';await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il PDF: '+(e.message||e)}};
  $('expms').onclick=async()=>{if(!score||!score.doc)return;$('expmsg').textContent='Preparo il file…';try{const r=exportScoreFile();await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il file: '+(e.message||e)}};
 }
 demo();setSpeed(100);frame();
