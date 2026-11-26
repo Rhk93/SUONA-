@@ -145,6 +145,12 @@ body[data-t=neon] .mcard{background:#11123af0;border:1px solid #00f0ff66;box-sha
 #brkrows{display:grid;gap:4px;max-height:34vh;overflow:auto}.brow{display:flex;align-items:center;gap:8px;padding:2px 0}.brow span{width:4.2em;font-weight:600}.brow b{min-width:1.6em;text-align:center;font-size:1.15rem}.brow small{opacity:.65}.brow button{min-height:38px;min-width:38px;padding:0}.brow.fix span{color:var(--acc)}
 .sheet.brkedit{border-style:dashed;cursor:pointer}
 #brk[aria-pressed=true]{background:var(--acc);color:#fff}
+.fret{margin-top:10px;border-radius:18px;overflow:hidden;background:var(--card);box-shadow:0 4px 0 var(--line)}.fret svg{display:block;width:100%;height:auto;max-height:26vh}
+.fbg{fill:#5b3a1e}.fzn{fill:#ffffff22;stroke:#ffc93c;stroke-width:2;stroke-dasharray:6 5}.fnut{fill:#f3e7cf}.ffr{stroke:#c9c2b4;stroke-width:3}.fin{fill:#e9dcc0;opacity:.7}.fst{stroke:#e8e3d6}.fsn{fill:#f3e7cf;font:600 14px Fredoka,sans-serif}.fno{fill:var(--ink);font:600 12px Fredoka,sans-serif;text-anchor:middle;opacity:.7}
+.fdot{stroke:#fff;stroke-width:2.5;filter:drop-shadow(0 0 6px #0006)}.fdt{fill:#fff;font:700 11px Fredoka,sans-serif;text-anchor:middle;pointer-events:none}
+#stage.fs .fret{flex:none;margin:0}#stage.fs .fret svg{max-height:24vh}
+body.onlyneck .sheet,body.onlyneck .fscorner{display:none!important}body.onlyneck .fret svg{max-height:60vh}body.onlyneck #stage.fs .fret{flex:1;display:flex;align-items:center}
+#onlyn[aria-pressed=true]{background:var(--acc);color:#fff}
 .lbt{font:600 13px Fredoka,sans-serif;fill:var(--note)}
 .cht{font:700 14px Fredoka,sans-serif;fill:#fff}
 .chp{fill:var(--acc)}
@@ -216,7 +222,8 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div></details>
 <div class="tools">
  <label id="lblw">Scritte sotto<select id="lbl"><option value="none">Nessuna</option><option value="note">Nomi delle note</option><option value="mix">Accordi e note</option><option value="chord">Solo accordi</option></select></label>
- <div class="zs"><button id="exp">Esporta</button><button id="brk" aria-pressed="false">A capo</button><button id="fsb">Schermo intero</button><button id="sOut" aria-label="Spartito più piccolo">−</button><button id="sIn" aria-label="Spartito più grande">+</button></div>
+ <label>Manico chitarra<select id="fzone"><option value="off">Nascosto</option><option value="0-15">Tutto il manico</option><option value="0-4">I posizione (tasti 0–4)</option><option value="2-6">II posizione (2–6)</option><option value="5-9">V posizione (5–9)</option><option value="7-11">VII posizione (7–11)</option><option value="9-13">IX posizione (9–13)</option><option value="12-15">XII posizione (12–15)</option></select></label>
+ <div class="zs"><button id="onlyn" aria-pressed="false">Solo manico</button><button id="exp">Esporta</button><button id="brk" aria-pressed="false">A capo</button><button id="fsb">Schermo intero</button><button id="sOut" aria-label="Spartito più piccolo">−</button><button id="sIn" aria-label="Spartito più grande">+</button></div>
 </div>
 <details class="box look" id="look"><summary>Aspetto e proporzioni</summary><div class="tools">
  <label>Pentagramma<select id="sty"><option value="classico">Classico</option><option value="moderno">Moderno</option><option value="fumetto">Fumetto</option><option value="arcobaleno">Arcobaleno</option><option value="cartoon">Cartone animato</option><option value="lavagna">Lavagna</option><option value="neon">Neon</option><option value="quaderno">Quaderno</option><option value="antico">Antico</option><option value="pastello">Pastello</option></select></label>
@@ -231,6 +238,7 @@ footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:18px}
 </div></details>
 <div class="box brkhint" id="brkhint" hidden><b>A capo manuale</b><span class="note">Scegli quante battute mettere in ogni rigo, oppure tocca una battuta nello spartito per mandarla a capo (la prima di un rigo la riporta su). I righi dopo seguono «Battute per riga».</span><div id="brkrows"></div><div class="pre"><button id="brkok">Fatto</button><button id="brkr">Ripristina</button></div></div>
 <div id="stage"><button class="fscorner" id="fsc" aria-label="Schermo intero" title="Schermo intero"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button><div class="sheet" id="sheet"><div class="in" id="sin"><div class="stitle" id="stitle" contenteditable="true" spellcheck="false" title="Tocca per modificare il titolo"></div><div id="svg"></div><div class="mbox" id="mbox"></div><div class="cur" id="cur"><canvas class="ball" id="ball" width="56" height="56"></canvas></div></div></div>
+<div class="fret" id="fret"></div>
 <div class="fzoom"><button id="fzrec" aria-label="Registra schermo" title="Registra schermo"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></button><button id="fzo" aria-label="Rimpicciolisci spartito">−</button><button id="fzi" aria-label="Ingrandisci spartito">+</button><button id="fzx" aria-label="Esci dallo schermo intero" title="Esci dallo schermo intero"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10h-6V4M14 10l7-7M4 14h6v6M10 14l-7 7"/></svg></button></div>
 <div class="bar" id="bar"><details class="fsset" id="fsset"><summary>Impostazioni</summary><div id="fssetin"></div></details><button id="fsm">Meno comandi</button><button id="fsx">Esci</button></div></div>
 <div class="ctrl" id="ctrl">
@@ -303,7 +311,7 @@ function parseMXL(xml,fname){
  const ps=[],staves=[],ev=[],tempos=[],meas=[],reps=[],voltas=[];let vS=null;
  kids(root,'part').forEach((part,pi)=>{
   const inf=pl[part.getAttribute('id')]||{};let div=1,key=0,ts=[4,4],tc=0,drum=inf.ch==='10',mStart=0;
-  const ns=Math.max(1,+(part.querySelector('attributes > staves')?.textContent||1)),clefs={},sts=[],ties={},tup={};
+  const ns=Math.max(1,+(part.querySelector('attributes > staves')?.textContent||1)),clefs={},sts=[],ties={},tup={},octs={},gn=(inf.name||'').toLowerCase(),isG=/guit|chitar/.test(gn)||(inf.prog&&+inf.prog>=25&&+inf.prog<=40&&!/voice|voce|coro|choir/.test(gn));
   for(let k=0;k<ns;k++){sts.push({pi,ms:[]});clefs[k+1]=k?'bass':'treble'}
   kids(part,'measure').forEach(m=>{
    if(pi===0){meas.push(mStart);reps.push({s:false,e:0})}
@@ -313,7 +321,7 @@ function parseMXL(xml,fname){
     if(t==='attributes'){div=+kt(c,'divisions')||div;
      const f=c.querySelector('key > fifths');if(f){key=Math.max(-7,Math.min(7,+f.textContent||0));Ms.forEach(M=>M.key=key)}
      const tm=c.querySelector('time');if(tm){const a=parseInt(kt(tm,'beats')),bt=+kt(tm,'beat-type');if(a&&bt){ts=[a,bt];Ms.forEach(M=>M.ts=ts)}}
-     kids(c,'clef').forEach(cl=>{const n=+(cl.getAttribute('number')||1),sg=kt(cl,'sign'),ln=kt(cl,'line');clefs[n]=sg==='F'?'bass':sg==='C'?(ln==='4'?'tenor':'alto'):sg==='percussion'?'percussion':'treble';if(cur===0&&Ms[n-1])Ms[n-1].clef=clefs[n]});
+     kids(c,'clef').forEach(cl=>{const n=+(cl.getAttribute('number')||1),sg=kt(cl,'sign'),ln=kt(cl,'line');octs[n]=+kt(cl,'clef-octave-change')||0;clefs[n]=sg==='F'?'bass':sg==='C'?(ln==='4'?'tenor':'alto'):sg==='percussion'?'percussion':'treble';if(cur===0&&Ms[n-1])Ms[n-1].clef=clefs[n]});
      const tr=c.querySelector('transpose');if(tr)tc=(+kt(tr,'chromatic')||0)+12*(+kt(tr,'octave-change')||0)}
     else if(t==='backup')cur-=(+kt(c,'duration')||0)/div;
     else if(t==='forward'){cur+=(+kt(c,'duration')||0)/div;maxp=Math.max(maxp,cur)}
@@ -334,8 +342,8 @@ function parseMXL(xml,fname){
      }
      if(pitch||un){
       let st,al=0,oc;if(pitch){st=kt(pitch,'step');al=Math.round(+kt(pitch,'alter')||0);oc=+kt(pitch,'octave')}else{st=kt(un,'display-step')||'B';oc=+kt(un,'display-octave')||4;drum=true}
-      const p=(oc+1)*12+(SN[st]||0)+al+tc,fw=!!c.querySelector('tie[type="start"]'),tk=sn+'_'+p;
-      it.notes.push({p,k:st.toLowerCase()+(al>0?'#'.repeat(al):'b'.repeat(-al))+'/'+oc,fw});
+      const snd=(isG&&!tc&&!octs[sn])?-12:0,p=(oc+1)*12+(SN[st]||0)+al+tc+snd,fw=!!c.querySelector('tie[type="start"]'),tk=sn+'_'+p;
+      it.notes.push({p,k:st.toLowerCase()+(al>0?'#'.repeat(al):'b'.repeat(-al))+'/'+(oc-(octs[sn]||0)),fw});
       if(ties[tk]){ties[tk].e=it.e;if(!fw)delete ties[tk]}else{const e={s:it.s,e:it.e,p,pi};ev.push(e);if(fw)ties[tk]=e}
      }
     }
@@ -376,7 +384,10 @@ function parse(xml,fname){
   const tc=+(p.querySelector('Instrument transposeChromatic')?.textContent||0)||0,cl={};
   p.querySelectorAll('Instrument > clef').forEach(c=>cl[c.getAttribute('staff')||'1']=c.textContent.trim());
   kids(p,'Staff').forEach((s,k)=>{const dc=s.querySelector('defaultClef')?.textContent;s2p[s.getAttribute('id')]={pi:i,clef:cmap(dc||cl[k+1]||(k?null:cl['1'])||(drum?'PERC':(k?'F':'G')))}});
-  const pr=p.querySelector('Channel program')?.getAttribute('value');return{name,inst:guess(name,drum,pr==null?null:+pr),tc,drum};
+  const pr=p.querySelector('Channel program')?.getAttribute('value'),inst=guess(name,drum,pr==null?null:+pr);let tcd=tc,snd=0;
+  const rc=[...p.querySelectorAll('Instrument > clef, defaultClef, concertClefType')].map(e=>e.textContent).join(' ');
+  if(/8vb/i.test(rc)){if(!tc)tcd=-12}else if(['chitarra','chitelet','basso'].includes(inst)&&!tc)snd=-12;
+  return{name,inst,tc:tcd,drum,snd};
  });
  const ev=[],tempos=[],meas=[],tupMap={},staves=[],reps=[],voltas=[],pv={};
  kids(sc,'Staff').forEach((st,si)=>{
@@ -412,9 +423,9 @@ function parse(xml,fname){
        const p=+kt(n,'pitch');if(!p)return;
        const fw=!!n.querySelector('Spanner[type="Tie"] > next')||kids(n,'Tie').length>0;
        const t1=kt(n,'tpc'),t2=kt(n,'tpc2'),tp=P.tc&&t2!==''?+t2:(t1!==''?+t1:null);
-       it.notes.push({p,k:spell(p-P.tc,tp),fw});
+       const ps=p+(P.snd||0);it.notes.push({p:ps,k:spell(p-P.tc,tp),fw});
        if(ties[p]){ties[p].e=s+d;if(!fw)delete ties[p]}
-       else{const e={s,e:s+d,p,pi};ev.push(e);if(fw)ties[p]=e}
+       else{const e={s,e:s+d,p:ps,pi};ev.push(e);if(fw)ties[p]=e}
       });
       items.push(it);cur+=d;
      }
@@ -806,7 +817,7 @@ function applyLook(){document.body.dataset.t=th;$('sheet').className='sheet sty-
 applyLook();
 function frame(){requestAnimationFrame(frame);if(!score)return;const t0=now();
  $('time').textContent=fmt(t0/speed)+' / '+fmt(score.end/speed);
- if(document.activeElement!==$('seek'))$('seek').value=Math.round(Math.min(1,t0/score.end)*1000);updSheet(p2l(t0))}
+ if(document.activeElement!==$('seek'))$('seek').value=Math.round(Math.min(1,t0/score.end)*1000);updSheet(p2l(t0));try{window.__fretTick&&__fretTick(t0)}catch(e){}}
 
 /* ---------- raccolta da link ---------- */
 const SC=/\.(mscz|mscx|mxl|musicxml|xml)$/i;
@@ -1079,6 +1090,34 @@ $('brkrows').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||!score)retu
  $('expx').onclick=()=>$('expp').hidden=true;
  $('exppdf').onclick=async()=>{if(!score)return;$('expmsg').textContent='Preparo il PDF…';try{const r=await exportPdf();$('expmsg').textContent='PDF pronto ('+(r.blob.size/1024<1024?Math.round(r.blob.size/1024)+' KB':(r.blob.size/1048576).toFixed(1)+' MB')+')';await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il PDF: '+(e.message||e)}};
  $('expms').onclick=async()=>{if(!score||!score.doc)return;$('expmsg').textContent='Preparo il file…';try{const r=exportScoreFile();await saveBlob(r.blob,r.nm)}catch(e){$('expmsg').textContent='Non riesco a creare il file: '+(e.message||e)}};
+}
+/* ---------- manico chitarra ---------- */
+{const OPEN=[64,59,55,50,45,40],NF=15,X0=46,XE=985,L=(XE-X0)/(1-2**(-NF/12)),fx=f=>X0+L*(1-2**(-f/12)),SY=i=>22+i*26;
+ let zone=localStorage.getItem('ss_fz')||'0-4',lastKey='';
+ const NM=['Do','Do♯','Re','Mi♭','Mi','Fa','Fa♯','Sol','La♭','La','Si♭','Si'];
+ function draw(){const z=zone.split('-').map(Number);let h='<rect x="0" y="0" width="1000" height="180" rx="16" class="fbg"/>';
+  if(zone!=='0-15')h+=`<rect x="${z[0]?fx(z[0]-1):0}" y="8" width="${fx(z[1])-(z[0]?fx(z[0]-1):0)}" height="150" rx="10" class="fzn"/>`;
+  h+=`<rect x="${X0-6}" y="14" width="7" height="146" class="fnut"/>`;
+  for(let f=1;f<=NF;f++)h+=`<line x1="${fx(f)}" y1="16" x2="${fx(f)}" y2="158" class="ffr"/><text x="${(fx(f-1)+fx(f))/2}" y="176" class="fno">${f}</text>`;
+  [3,5,7,9,15].forEach(f=>h+=`<circle cx="${(fx(f-1)+fx(f))/2}" cy="87" r="6" class="fin"/>`);h+=`<circle cx="${(fx(11)+fx(12))/2}" cy="61" r="6" class="fin"/><circle cx="${(fx(11)+fx(12))/2}" cy="113" r="6" class="fin"/>`;
+  OPEN.forEach((o,i)=>h+=`<line x1="${X0}" y1="${SY(i)}" x2="${XE}" y2="${SY(i)}" class="fst" stroke-width="${1.2+i*.45}"/><text x="14" y="${SY(i)+5}" class="fsn">${['Mi','Si','Sol','Re','La','Mi'][i]}</text>`);
+  $('fret').innerHTML=`<svg viewBox="0 0 1000 182" preserveAspectRatio="xMidYMid meet">${h}<g id="fdots"></g></svg>`;lastKey=''}
+ function pick(p){while(p<40)p+=12;while(p>OPEN[0]+NF)p-=12;const z=zone.split('-').map(Number),mid=(z[0]+z[1])/2,c=[];
+  OPEN.forEach((o,s)=>{const f=p-o;if(f>=0&&f<=NF)c.push({s,f})});if(!c.length)return null;
+  const inz=c.filter(q=>q.f>=z[0]&&q.f<=z[1]);const pool=inz.length?inz:c;pool.sort((a,b)=>Math.abs(a.f-mid)-Math.abs(b.f-mid));return{best:pool[0],all:c,p}}
+ function show(ns){const key=ns.map(n=>n.p+n.c).join();if(key===lastKey)return;lastKey=key;const g=document.getElementById('fdots');if(!g)return;let h='';const used=new Set();
+  ns.forEach(n=>{const r=pick(n.p);if(!r)return;let b=r.best;if(used.has(b.s)){const alt=r.all.find(q=>!used.has(q.s));if(alt)b=alt}used.add(b.s);
+   r.all.forEach(q=>{if(q!==b)h+=`<circle cx="${q.f?(fx(q.f-1)+fx(q.f))/2:X0-24}" cy="${SY(q.s)}" r="8" fill="${n.c}" opacity=".22"/>`});
+   const cx=b.f?(fx(b.f-1)+fx(b.f))/2:X0-24;h+=`<circle cx="${cx}" cy="${SY(b.s)}" r="13" fill="${n.c}" class="fdot"/><text x="${cx}" y="${SY(b.s)+4.5}" class="fdt">${NM[r.p%12]}</text>`});
+  g.innerHTML=h}
+ window.__fretTick=t=>{if(zone==='off'||!score)return;const out=[],seen=new Set();
+  for(let k=find(t-8);k<score.ev.length&&score.ev[k].s<=t+.001;k++){const e=score.ev[k],P=parts[e.pi];if(t<e.e&&P&&P.show!==false&&!seen.has(e.p)){seen.add(e.p);out.push({p:e.p,c:P.col})}}
+  show(out.slice(0,6))};
+ const apply=()=>{$('fret').hidden=zone==='off';$('fzone').value=zone;if(zone!=='off')draw();document.body.classList.toggle('onlyneck',onlyN&&zone!=='off')};
+ let onlyN=false;
+ $('fzone').onchange=e=>{zone=e.target.value;try{localStorage.setItem('ss_fz',zone)}catch(x){}apply()};
+ $('onlyn').onclick=()=>{onlyN=!onlyN;$('onlyn').setAttribute('aria-pressed',onlyN);if(onlyN&&zone==='off'){zone='0-4';try{localStorage.setItem('ss_fz',zone)}catch(x){}}apply();if(!onlyN)setTimeout(renderSheet,50)};
+ apply();
 }
 demo();setSpeed(100);frame();
 }
